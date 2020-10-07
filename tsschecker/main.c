@@ -87,7 +87,7 @@ void cmd_help(){
     printf("      --beta\t\t\trequest tickets for a beta instead of normal release (use with -o)\n");
     printf("      --list-devices\t\tlist all known devices\n");
     printf("      --list-ios\t\tlist all known firmware versions\n");
-    printf("      --nocache \t\tignore caches and redownload required files\n");
+    printf("      --nocache \t\tignore caches and re-download required files\n");
     printf("      --print-tss-request\tprint the TSS request that will be sent to Apple\n");
     printf("      --print-tss-response\tprint the TSS response that comes from Apple\n");
     printf("      --raw\t\t\tsend raw file to Apple's TSS server (useful for debugging)\n\n");
