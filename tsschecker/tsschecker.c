@@ -487,19 +487,10 @@ malloc_rets:
     return (t_versionURL*)rets_base;
 }
 
-static void printline(int percent){
-    info("%03d [",percent);for (int i=0; i<100; i++) putchar((percent >0) ? ((--percent > 0) ? '=' : '>') : ' ');
-    info("]");
-}
-
-static void fragmentzip_callback(unsigned int progress){
-    info("\x1b[A\033[J"); //clear 2 lines
-    printline((int)progress);
-    info("\n");
-}
+static void fragmentzip_callback(){}
 
 int downloadPartialzip(const char *url, const char *file, const char *dst){
-    log("[LFZP] downloading %s from %s\n\n",file,url);
+    log("[LFZP] downloading %s from %s\n",file,url);
     fragmentzip_t *info = fragmentzip_open(url);
     if (!info) {
         error("[LFZP] failed to open url\n");
