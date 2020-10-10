@@ -17,6 +17,9 @@ tsschecker_LDADD = $(AM_LDFLAGS) libjssy.a
 
 tsschecker_SOURCES = tsschecker.c tss.c download.c main.c
 endif
-#ifdef WIN32
+
+if WINDOWS
 tsschecker_LDFLAGS = -all-static -lpthread -Wl,--allow-multiple-definition $(AM_LDFLAGS)
-#endif
+else
+tsschecker_LDFLAGS = $(AM_LDFLAGS)
+endif
