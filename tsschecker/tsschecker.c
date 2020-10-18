@@ -150,6 +150,10 @@ static struct bbdevice bbdevices[] = {
     {"iPhone12,3", 524245983, 12},  // iPhone 11 Pro
     {"iPhone12,5", 524245983, 12},  // iPhone 11 Pro Max
     {"iPhone12,8", 524245983, 12},  // iPhone SE (2020)
+    {"iPhone13,1", 0, 0},  // iPhone 12 mini
+    {"iPhone13,2", 0, 0},  // iPhone 12
+    {"iPhone13,3", 0, 0},  // iPhone 12 Pro
+    {"iPhone13,4", 0, 0},  // iPhone 12 Pro Max
     
     // iPads
     {"iPad1,1",  0, 0},          // iPad (1st gen)
@@ -683,6 +687,7 @@ int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
     if (strncasecmp(devVals->deviceModel, "AppleTV2,", strlen("AppleTV2,")) == 0 ||
             strncasecmp(devVals->deviceModel, "AppleTV3,", strlen("AppleTV3,")) == 0 ||
             strncasecmp(devVals->deviceModel, "AppleTV5,", strlen("AppleTV5,")) == 0 ||
+            strncasecmp(devVals->deviceModel, "Watch1,", strlen("Watch1,")) == 0 ||
             strncasecmp(devVals->deviceModel, "iPad1,", strlen("iPad1,")) == 0 ||
             strncasecmp(devVals->deviceModel, "iPad2,", strlen("iPad2,")) == 0 ||
             strncasecmp(devVals->deviceModel, "iPad3,", strlen("iPad3,")) == 0 ||
