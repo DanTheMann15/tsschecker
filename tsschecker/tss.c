@@ -1558,7 +1558,7 @@ char* tss_request_send_raw(char* request, const char* server_url_string, int* re
         
         response = malloc(sizeof(tss_response));
         if (response == NULL) {
-            fprintf(stderr, "Unable to allocate sufficent memory\n");
+            fprintf(stderr, "Unable to allocate sufficient memory\n");
             return NULL;
         }
         
