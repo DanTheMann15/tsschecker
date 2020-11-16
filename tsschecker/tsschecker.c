@@ -252,6 +252,11 @@ static struct bbdevice bbdevices[] = {
     {"Watch6,3",  744114402, 12}, // Apple Watch Series 6 (40mm GPS + Cellular)
     {"Watch6,4",  744114402, 12}, // Apple Watch Series 6 (44mm GPS + Cellular)
     
+    // HomePods
+    {"AudioAccessory1,1", 0, 0}, // HomePod 1st gen
+    {"AudioAccessory1,2", 0, 0}, // HomePod 1st gen (2018)
+    {"AudioAccessory5,1", 0, 0}, // HomePod mini
+    
     // Apple TVs
     {"AppleTV1,1", 0, 0}, // 1st gen
     {"AppleTV2,1", 0, 0}, // 2nd gen
