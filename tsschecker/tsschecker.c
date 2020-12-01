@@ -108,6 +108,11 @@ const char *shshSavePath = "."DIRECTORY_DELIMITER_STR;
 
 // iPhone & iPod touch (1st generations) doesn't have signing technology.
 static struct bbdevice bbdevices[] = {
+    // Apple Silicon Macs
+    {"Macmini9,1", 0, 0},     // Mac Mini (M1, Late 2020)
+    {"MacBookAir10,1", 0, 0}, // MacBook Air (M1, Late 2020)
+    {"MacBookPro17,1", 0, 0}, // MacBook Pro (M1, Late 2020)
+    
     // iPod touches
     {"iPod2,1", 0, 0}, // 2nd gen
     {"iPod3,1", 0, 0}, // 3rd gen
