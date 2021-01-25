@@ -115,7 +115,8 @@ static struct bbdevice bbdevices[] = {
     {"MacBookPro17,1", 0, 0}, // MacBook Pro (13-inch, M1, 2020)
     
     // Apple T2 Coprocessor
-    {"iBridge2,1", 0, 0}, // Apple T2 iMacPro1,1 (j137){"iBridge2,3", 0, 0}, // Apple T2 MacBookPro15,1 (j680)
+    {"iBridge2,1", 0, 0}, // Apple T2 iMacPro1,1 (j137)
+    {"iBridge2,3", 0, 0}, // Apple T2 MacBookPro15,1 (j680)
     {"iBridge2,4", 0, 0}, // Apple T2 MacBookPro15,2 (j132)
     {"iBridge2,5", 0, 0}, // Apple T2 Macmini8,1 (j174)
     {"iBridge2,6", 0, 0}, // Apple T2 MacPro7,1 (j160)
