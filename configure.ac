@@ -24,9 +24,6 @@ case "${host_os}" in
     darwin*)
         build_mac=yes
         ;;
-    *)
-        AC_MSG_ERROR(["OS $host_os is not supported"])
-        ;;
 esac
 
 # Pass the conditionals to automake
