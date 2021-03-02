@@ -1006,7 +1006,7 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
         snprintf(fname+prePathLen, fnamelen, DIRECTORY_DELIMITER_STR"%s_%s_%s-%s_%s.shsh%s",cecid,tmpDevicename,cpvers,cbuild, apnonce, (*devVals->generator || apticket2) ? "2" : "");
         
         
-        FILE *shshfile = fopen(fname, "w");
+        FILE *shshfile = fopen(fname, "wb");
         if (!shshfile) error("[Error] can't save shsh at %s\n",fname);
         else{
             fwrite(data, strlen(data), 1, shshfile);
