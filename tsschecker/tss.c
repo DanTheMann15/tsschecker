@@ -38,7 +38,7 @@
 #else
 #include <sys/stat.h>
 #define __mkdir(path, mode) mkdir(path, mode)
-#define FMT_qu "%qu"
+#define FMT_qu "%llu"
 #endif
 
 #ifdef HAVE_CONFIG_H
@@ -48,7 +48,11 @@
 #include "tss.h"
 #include "endianness.h"
 
-#define TSS_CLIENT_VERSION_STRING "libauthinstall-776.40.16"
+#ifdef WIN32
+#define TSS_CLIENT_VERSION_STRING "libauthinstall_Win-850.0.2" 
+#else
+#define TSS_CLIENT_VERSION_STRING "libauthinstall-850.0.2"
+#endif
 #define ECID_STRSIZE 0x20
 #define GET_RAND(min, max) ((rand() % (max - min)) + min)
 
@@ -480,46 +484,6 @@ int tss_parameters_add_from_manifest(plist_t parameters, plist_t build_identity)
 	return 0;
 }
 
-int tss_request_add_rap_img4_tags(plist_t request, plist_t parameters) {
-    plist_t node = NULL;
-    plist_dict_set_item(request, "@Rap,Ticket", plist_new_bool(1));
-
-    
-    /* Rap,BoardID */
-    node = plist_dict_get_item(parameters, "Rap,BoardID");
-    if (node) {
-        plist_dict_set_item(request, "Rap,BoardID", plist_copy(node));
-    }
-    node = NULL;
-    
-    /* Rap,ChipID */
-    node = plist_dict_get_item(parameters, "Rap,ChipID");
-    if (node) {
-        plist_dict_set_item(request, "Rap,ChipID", plist_copy(node));
-    }
-    node = NULL;
-    
-    /* Rap,SecurityDomain */
-    node = plist_dict_get_item(parameters, "Rap,SecurityDomain");
-    if (node) {
-        plist_dict_set_item(request, "Rap,SecurityDomain", plist_copy(node));
-    }
-    node = NULL;
-    
-    //we are always requesting in Production mode, right?
-    plist_dict_set_item(request, "Rap,ProductionMode", plist_new_bool(1));
-
-    //we are always requesting in SecurityMode mode, right?
-    plist_dict_set_item(request, "Rap,SecurityMode", plist_new_bool(1));
-
-    
-    //we need these mods for tss_request_add_ap_tags
-    plist_dict_set_item(parameters, "ApSecurityMode", plist_new_bool(1));
-    plist_dict_set_item(parameters, "ApProductionMode", plist_new_bool(1));
-    plist_dict_set_item(parameters, "ApSupportsImg4", plist_new_bool(1));
-    return 0;
-}
-
 int tss_request_add_ap_img4_tags(plist_t request, plist_t parameters) {
 	plist_t node = NULL;
 
@@ -806,8 +770,8 @@ int tss_request_add_ap_tags(plist_t request, plist_t parameters, plist_t overrid
 				debug("DEBUG: %s: Skipping '%s' as it is not trusted", __func__, key);
 				continue;
 			}
-			if (!_plist_dict_get_bool(info_dict, "IsFirmwarePayload") && !_plist_dict_get_bool(info_dict, "IsSecondaryFirmwarePayload") && !_plist_dict_get_bool(info_dict, "IsFUDFirmware")) {
-				debug("DEBUG: %s: Skipping '%s' as it is neither firmware nor secondary nor FUD firmware payload\n", __func__, key);
+			if (!_plist_dict_get_bool(manifest_entry, "Trusted") && !_plist_dict_get_bool(info_dict, "IsFirmwarePayload") && !_plist_dict_get_bool(info_dict, "IsSecondaryFirmwarePayload") && !_plist_dict_get_bool(info_dict, "IsFUDFirmware")) {
+				debug("DEBUG: %s: Skipping '%s' as it is neither firmware nor secondary firmware payload\n", __func__, key);
 				continue;
 			}
 		}

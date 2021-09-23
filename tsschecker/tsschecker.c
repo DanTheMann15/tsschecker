@@ -180,6 +180,10 @@ static struct bbdevice bbdevices[] = {
     {"iPhone13,2", 3095201109, 4},  // iPhone 12
     {"iPhone13,3", 3095201109, 4},  // iPhone 12 Pro
     {"iPhone13,4", 3095201109, 4},  // iPhone 12 Pro Max
+    {"iPhone14,2", 0, 0},  // iPhone 13 Pro Max
+    {"iPhone14,3", 0, 0},  // iPhone 13 Pro
+    {"iPhone14,4", 0, 0},  // iPhone 13 mini
+    {"iPhone14,5", 0, 0},  // iPhone 13
     
     // iPads
     {"iPad1,1",  0, 0},          // iPad (1st gen)
@@ -201,6 +205,8 @@ static struct bbdevice bbdevices[] = {
     {"iPad7,12", 165673526, 12}, // iPad (7th gen, 2019, Cellular)
     {"iPad11,6", 0, 0},          // iPad (8th gen, 2020, Wi-Fi)
     {"iPad11,7", 165673526, 12}, // iPad (8th gen, 2020, Cellular)
+    {"iPad12,1", 0, 0},          // iPad (9th gen, 2021, Wi-Fi)
+    {"iPad12,2", 165673526, 12}, // iPad (9th gen, 2021, Cellular)
     
     // iPad minis
     {"iPad2,5",  0, 0},          // iPad mini (1st gen, Wi-Fi)
@@ -216,6 +222,8 @@ static struct bbdevice bbdevices[] = {
     {"iPad5,2",  3840149528, 4}, // iPad mini 4 (Cellular)
     {"iPad11,1", 0, 0},          // iPad mini (5th gen, Wi-Fi)
     {"iPad11,2", 165673526, 12}, // iPad mini (5th gen, Cellular)
+    {"iPad14,1", 0, 0},          // iPad mini (6th gen, Wi-Fi)
+    {"iPad14,2", 0, 0}, // iPad mini (6th gen, Cellular)
     
     // iPad Airs
     {"iPad4,1",  0, 0},          // iPad Air (Wi-Fi)
@@ -285,6 +293,10 @@ static struct bbdevice bbdevices[] = {
     {"Watch6,2",  0, 0},          // Apple Watch Series 6 (44mm GPS)
     {"Watch6,3",  744114402, 12}, // Apple Watch Series 6 (40mm GPS + Cellular)
     {"Watch6,4",  744114402, 12}, // Apple Watch Series 6 (44mm GPS + Cellular)
+    {"Watch6,6",  0, 0},          // Apple Watch Series 7 (41mm GPS)
+    {"Watch6,7",  0, 0},          // Apple Watch Series 7 (45mm GPS)
+    {"Watch6,8",  744114402, 12}, // Apple Watch Series 7 (41mm GPS + Cellular)
+    {"Watch6,9",  744114402, 12}, // Apple Watch Series 7 (45mm GPS + Cellular)
     
     // HomePods
     {"AudioAccessory1,1", 0, 0}, // HomePod 1st gen
@@ -531,7 +543,20 @@ malloc_rets:
     return (t_versionURL*)rets_base;
 }
 
+#ifdef WIN32
 static void fragmentzip_callback(){}
+#else
+static void printline(int percent){
+    info("%03d [",percent);for (int i=0; i<100; i++) putchar((percent >0) ? ((--percent > 0) ? '=' : '>') : ' ');
+    info("]");
+}
+
+static void fragmentzip_callback(unsigned int progress){
+    info("\x1b[A\033[J"); //clear 2 lines
+    printline((int)progress);
+    info("\n");
+}
+#endif
 
 int downloadPartialzip(const char *url, const char *file, const char *dst){
     log("[LFZP] downloading %s from %s\n",file,url);
@@ -586,10 +611,34 @@ char *getBuildManifest(char *url, const char *device, const char *version, const
     
     if (!f || nocache){
         //download if it isn't there
-        if (downloadPartialzip(url, (isOta) ? "AssetData/boot/BuildManifest.plist" : "BuildManifest.plist", fileDir)){
-            free(fileDir);
-            return NULL;
+        int got_buildmanifest = 0;
+
+        if (!isOta) {
+            int index = 0;
+            for (int i = 0; i < strlen(url); i++) {
+                if (url[i] == '/') {
+                    index = i;
+                }
+            }
+
+            char *buildmanifest_url = malloc(strlen(url));
+            buildmanifest_url = strncpy(buildmanifest_url, url, index);
+            buildmanifest_url[index] = '\0';
+            buildmanifest_url = strcat(buildmanifest_url, "/BuildManifest.plist");
+
+            if (downloadFile(buildmanifest_url, fileDir) == 0) {
+                free(buildmanifest_url);
+                got_buildmanifest = 1;
+            }
         }
+
+        if (!got_buildmanifest) {
+            if (downloadPartialzip(url, (isOta) ? "AssetData/boot/BuildManifest.plist" : "BuildManifest.plist", fileDir)){
+                free(fileDir);
+                return NULL;
+            }
+        }
+
         f = fopen(fileDir, "rb");
     }
     fseek(f, 0, SEEK_END);
@@ -629,10 +678,8 @@ void getRandNum(char *dst, size_t size, int base){
 #pragma mark tss functions
 int tss_populate_devicevals(plist_t tssreq, uint64_t ecid, char *nonce, size_t nonce_size, char *sep_nonce, size_t sep_nonce_size, int image4supported){
     plist_dict_set_item(tssreq, "ApECID", plist_new_uint(ecid)); //0000000000000000
-    plist_dict_set_item(tssreq, "Rap,ECID", plist_new_uint(ecid)); //0000000000000000
     if (nonce) {
         plist_dict_set_item(tssreq, "ApNonce", plist_new_data(nonce, nonce_size));//aa aa aa aa bb cc dd ee ff 00 11 22 33 44 55 66 77 88 99 aa
-        plist_dict_set_item(tssreq, "Rap,Nonce", plist_new_data(nonce, nonce_size));//aa aa aa aa bb cc dd ee ff 00 11 22 33 44 55 66 77 88 99 aa
     }
     
     if (sep_nonce) {//aa aa aa aa bb cc dd ee ff 00 11 22 33 44 55 66 77 88 99 aa
@@ -640,13 +687,10 @@ int tss_populate_devicevals(plist_t tssreq, uint64_t ecid, char *nonce, size_t n
     }
     
     plist_dict_set_item(tssreq, "ApProductionMode", plist_new_bool(1));
-    plist_dict_set_item(tssreq, "Rap,ProductionMode", plist_new_bool(1));
-
+    
     if (image4supported) {
         plist_dict_set_item(tssreq, "ApSecurityMode", plist_new_bool(1));
         plist_dict_set_item(tssreq, "ApSupportsImg4", plist_new_bool(1));
-
-        plist_dict_set_item(tssreq, "Rap,SecurityMode", plist_new_bool(1));
     } else {
         plist_dict_set_item(tssreq, "ApSupportsImg4", plist_new_bool(0));
     }
@@ -724,7 +768,7 @@ int parseHex(const char *nonce, size_t *parsedLen, char *ret, size_t *retSize){
     return 0;
 }
 
-int tss_populate_random(plist_t tssreq, int isIMG4Supported, t_devicevals *devVals){
+int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
     size_t nonceLen = 32; //valid for all devices with KTRR
     if (!devVals->deviceModel)
         return error("[TSSR] internal error: devVals->deviceModel is missing\n"),-1;
@@ -825,7 +869,7 @@ int tss_populate_random(plist_t tssreq, int isIMG4Supported, t_devicevals *devVa
     debug("[TSSR] ApNonce=%s\n",devVals->apnonce);
     debug("[TSSR] SepNonce=%s\n",devVals->sepnonce);
     
-    int rt = tss_populate_devicevals(tssreq, devVals->ecid, devVals->apnonce, devVals->parsedApnonceLen, devVals->sepnonce, devVals->parsedSepnonceLen, isIMG4Supported);
+    int rt = tss_populate_devicevals(tssreq, devVals->ecid, devVals->apnonce, devVals->parsedApnonceLen, devVals->sepnonce, devVals->parsedSepnonceLen, is64bit);
     return rt;
 }
 
@@ -859,43 +903,42 @@ getID0:
     plist_t sep = plist_dict_get_item(manifestdict, "SEP");
     int is64Bit = !(!sep || plist_get_node_type(sep) != PLIST_DICT);
     
-    plist_t Rap_BoardID = plist_dict_get_item(id0, "Rap,BoardID");
-    int isRapDevice = !(!Rap_BoardID || plist_get_node_type(Rap_BoardID) != PLIST_UINT);
-    
-    if (tss_populate_random(tssparameter,is64Bit || isRapDevice,devVals))
+    if (tss_populate_random(tssparameter,is64Bit,devVals))
         reterror("[TSSR] failed to populate tss request\n");
     
     tss_parameters_add_from_manifest(tssparameter, id0);
-            
+    if (tss_request_add_common_tags(tssreq, tssparameter, NULL) < 0) {
+        reterror("[TSSR] ERROR: Unable to add common tags to TSS request\n");
+    }
+    
     if (tss_request_add_ap_tags(tssreq, tssparameter, NULL) < 0) {
         reterror("[TSSR] ERROR: Unable to add common tags to TSS request\n");
     }
     
-    if (isRapDevice) {
-        if (tss_request_add_rose_tags(tssreq, tssparameter, NULL) < 0) {
+    if (is64Bit) {
+        if (tss_request_add_ap_img4_tags(tssreq, tssparameter) < 0) {
             reterror("[TSSR] ERROR: Unable to add img4 tags to TSS request\n");
         }
-    }else{
-        if (tss_request_add_common_tags(tssreq, tssparameter, NULL) < 0) {
-            reterror("[TSSR] ERROR: Unable to add common tags to TSS request\n");
+    } else {
+        if (tss_request_add_ap_img3_tags(tssreq, tssparameter) < 0) {
+            reterror("[TSSR] ERROR: Unable to add img3 tags to TSS request\n");
         }
-        if (is64Bit) {
-            if (tss_request_add_ap_img4_tags(tssreq, tssparameter) < 0) {
-                reterror("[TSSR] ERROR: Unable to add img4 tags to TSS request\n");
-            }
-        } else {
-            if (tss_request_add_ap_img3_tags(tssreq, tssparameter) < 0) {
-                reterror("[TSSR] ERROR: Unable to add img3 tags to TSS request\n");
-            }
-        }
-        if (basebandMode == kBasebandModeOnlyBaseband) {
-            if (plist_dict_get_item(tssreq, "@ApImg4Ticket"))
-                plist_dict_set_item(tssreq, "@ApImg4Ticket", plist_new_bool(0));
-            if (plist_dict_get_item(tssreq, "@APTicket"))
-                plist_dict_set_item(tssreq, "@APTicket", plist_new_bool(0));
-            //TODO: don't use .shsh2 ending and don't save generator when saving only baseband
-            info("[TSSR] User specified to request only a Baseband ticket.\n");
-        }
+    }
+    if (plist_dict_get_item(tssreq, "Savage,BE-Dev-Patch"))
+        plist_dict_remove_item(tssreq, "Savage,BE-Dev-Patch");
+    if(plist_dict_get_item(tssreq, "Savage,BE-Prod-Patch"))
+        plist_dict_remove_item(tssreq, "Savage,BE-Prod-Patch");
+    if(plist_dict_get_item(tssreq, "Savage,BF-Dev-Patch"))
+        plist_dict_remove_item(tssreq, "Savage,BF-Dev-Patch");
+    if(plist_dict_get_item(tssreq, "Savage,BF-Prod-Patch"))
+        plist_dict_remove_item(tssreq, "Savage,BF-Prod-Patch");
+    if (basebandMode == kBasebandModeOnlyBaseband) {
+        if (plist_dict_get_item(tssreq, "@ApImg4Ticket"))
+            plist_dict_set_item(tssreq, "@ApImg4Ticket", plist_new_bool(0));
+        if (plist_dict_get_item(tssreq, "@APTicket"))
+            plist_dict_set_item(tssreq, "@APTicket", plist_new_bool(0));
+        //TODO: don't use .shsh2 ending and don't save generator when saving only baseband
+        info("[TSSR] User specified to request only a Baseband ticket.\n");
     }
     
     if (basebandMode != kBasebandModeWithoutBaseband) {
@@ -969,7 +1012,7 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
             devVals->parsedApnonceLen = 0;
             devVals->apnonce = (char *)0x1337;
             devVals->installType = kInstallTypeErase;
-            if (tssreq2 && !tssrequest(&tssreq2, buildManifestBuffer, devVals, kBasebandModeWithoutBaseband)){
+            if (!tssrequest(&tssreq2, buildManifestBuffer, devVals, kBasebandModeWithoutBaseband)){
                 apticket3 = tss_request_send(tssreq2, NULL);
                 if (print_tss_response) debug_plist(apticket3);
             }
