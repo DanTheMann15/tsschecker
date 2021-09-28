@@ -48,10 +48,12 @@
 #include "tss.h"
 #include "endianness.h"
 
+#define AUTH_VERSION "850.0.2"
+
 #ifdef WIN32
-#define TSS_CLIENT_VERSION_STRING "libauthinstall_Win-850.0.2" 
+#define TSS_CLIENT_VERSION_STRING "libauthinstall_Win-"AUTH_VERSION"" 
 #else
-#define TSS_CLIENT_VERSION_STRING "libauthinstall-850.0.2"
+#define TSS_CLIENT_VERSION_STRING "libauthinstall-"AUTH_VERSION""
 #endif
 #define ECID_STRSIZE 0x20
 #define GET_RAND(min, max) ((rand() % (max - min)) + min)
