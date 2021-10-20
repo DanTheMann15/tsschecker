@@ -115,6 +115,10 @@ static struct bbdevice bbdevices[] = {
     {"Macmini9,1", 0, 0},     // Mac Mini (M1, 2020)
     {"MacBookAir10,1", 0, 0}, // MacBook Air (M1, 2020)
     {"MacBookPro17,1", 0, 0}, // MacBook Pro (13-inch, M1, 2020)
+    {"MacBookPro18,1", 0, 0}, // MacBook Pro (M1 Pro, 16-inch, 2021)
+    {"MacBookPro18,2", 0, 0}, // MacBook Pro (M1 Max, 16-inch, 2021)
+    {"MacBookPro18,3", 0, 0}, // MacBook Pro (M1 Pro, 14-inch, 2021)
+    {"MacBookPro18,4", 0, 0}, // MacBook Pro (M1 Max, 14-inch, 2021)
     
     // Apple T2 Coprocessor
     {"iBridge2,1", 0, 0}, // Apple T2 iMacPro1,1 (j137)
