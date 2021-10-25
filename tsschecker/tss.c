@@ -55,6 +55,7 @@
 #else
 #define TSS_CLIENT_VERSION_STRING "libauthinstall-"AUTH_VERSION""
 #endif
+
 #define ECID_STRSIZE 0x20
 #define GET_RAND(min, max) ((rand() % (max - min)) + min)
 
