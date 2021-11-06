@@ -58,6 +58,7 @@ static struct option longopts[] = {
     { "sepnonce",           required_argument, NULL,  9  },
     { "raw",                required_argument, NULL, 10  },
     { "bbsnum",             required_argument, NULL, 11  },
+    { "server-url",         required_argument, NULL, 12  },
     { "generator",          required_argument, NULL, 'g' },
     { NULL, 0, NULL, 0 }
 };
@@ -84,6 +85,7 @@ void cmd_help(){
     printf("      --sepnonce NONCE\t\tmanually specify SEP Nonce instead of using random ones (not required for saving blobs)\n");
     printf("      --bbsnum SNUM\t\tmanually specify BbSNUM in HEX to save valid BBTickets (not required for saving blobs)\n\n");
     printf("      --save-path PATH\t\tspecify output path for saving shsh blobs\n");
+    printf("      --server-url URL\t\tmanually specify TSS server URL\n");
     printf("      --beta\t\t\trequest tickets for a beta instead of normal release (use with -o)\n");
     printf("      --list-devices\t\tlist all known devices\n");
     printf("      --list-ios\t\tlist all known firmware versions\n");
@@ -149,7 +151,7 @@ char *parseNonce(const char *nonce, size_t *parsedLen){
 int main(int argc, const char * argv[]) {
     int err = 0;
     int isSigned = 0;
-    printf("tsschecker version: 0."TSSCHECKER_VERSION_COUNT".0-"TSSCHECKER_VERSION_SHA"\n");
+    printf("tsschecker version: 0."TSSCHECKER_VERSION_COUNT".0-"TSSCHECKER_VERSION_SHA"-"TSSCHECKER_BUILD_TYPE"\n");
     printf("%s\n",fragmentzip_version());
     
     dbglog = 1;
@@ -171,6 +173,7 @@ int main(int argc, const char * argv[]) {
     jssytok_t *firmwareTokens = NULL;
     
     const char *rawFilePath = NULL;
+    const char *serverUrl = NULL;
     
     if (argc == 1){
         cmd_help();
@@ -278,6 +281,9 @@ int main(int argc, const char * argv[]) {
             case 11: // only long option: "bbsnum"
                 bbsnum = optarg;
                 break;
+            case 12: // only long option: "server-url"
+                serverUrl = optarg;
+                break;
             default:
                 cmd_help();
                 return -1;
@@ -298,7 +304,7 @@ int main(int argc, const char * argv[]) {
         fclose(f);
         
         printf("Sending TSS request:\n%s",buf);
-        char *rsp = tss_request_send_raw(buf, NULL, (int*)&bufSize);
+        char *rsp = tss_request_send_raw(buf, serverUrl, (int*)&bufSize);
 
         printf("TSS server returned:\n%s\n",rsp);
         free(rsp);
@@ -425,13 +431,13 @@ int main(int argc, const char * argv[]) {
     }else{
         //request ticket
         if (buildmanifest) {
-            isSigned = isManifestSignedForDevice(buildmanifest, &devVals, &versVals);
+            isSigned = isManifestSignedForDevice(buildmanifest, &devVals, &versVals, serverUrl);
 
         }else{
             if (!devVals.deviceModel) reterror(-3,"[TSSC] please specify a device for this option\n\tuse -h for more help\n");
             if (!versVals.version && !versVals.buildID) reterror(-5,"[TSSC] please specify an firmware version or buildID for this option\n\tuse -h for more help\n");
             
-            isSigned = isVersionSignedForDevice(firmwareTokens, &versVals, &devVals);
+            isSigned = isVersionSignedForDevice(firmwareTokens, &versVals, &devVals, serverUrl);
         }
         
         if (isSigned >=0) printf("\n%s %s for device %s %s being signed!\n",(versVals.buildID) ? "Build" : "iOS" ,(versVals.buildID ? versVals.buildID : versVals.version),devVals.deviceModel, (isSigned) ? "IS" : "IS NOT");
