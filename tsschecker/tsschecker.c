@@ -120,6 +120,8 @@ static struct bbdevice bbdevices[] = {
     {"MacBookPro18,2", 0, 0}, // MacBook Pro (M1 Max, 16-inch, 2021)
     {"MacBookPro18,3", 0, 0}, // MacBook Pro (M1 Pro, 14-inch, 2021)
     {"MacBookPro18,4", 0, 0}, // MacBook Pro (M1 Max, 14-inch, 2021)
+    {"Mac13,1", 0, 0}, // Mac Studio (M1 Max, 2022)
+    {"Mac13,2", 0, 0}, // Mac Studio (M1 Ultra, 2022)
     
     // Apple T2 Coprocessor
     {"iBridge2,1", 0, 0}, // Apple T2 iMacPro1,1 (j137)
@@ -162,7 +164,7 @@ static struct bbdevice bbdevices[] = {
     {"iPhone7,2",  3840149528, 4},  // iPhone 6
     {"iPhone8,1",  3840149528, 4},  // iPhone 6s
     {"iPhone8,2",  3840149528, 4},  // iPhone 6s Plus
-    {"iPhone8,4",  3840149528, 4},  // iPhone SE
+    {"iPhone8,4",  3840149528, 4},  // iPhone SE (1st gen)
     {"iPhone9,1",  2315222105, 4},  // iPhone 7 (Global)
     {"iPhone9,2",  2315222105, 4},  // iPhone 7 Plus (Global)
     {"iPhone9,3",  1421084145, 12}, // iPhone 7 GSM
@@ -180,7 +182,7 @@ static struct bbdevice bbdevices[] = {
     {"iPhone12,1", 524245983, 12},  // iPhone 11
     {"iPhone12,3", 524245983, 12},  // iPhone 11 Pro
     {"iPhone12,5", 524245983, 12},  // iPhone 11 Pro Max
-    {"iPhone12,8", 524245983, 12},  // iPhone SE (2020)
+    {"iPhone12,8", 524245983, 12},  // iPhone SE (2nd gen)
     {"iPhone13,1", 3095201109, 4},  // iPhone 12 mini
     {"iPhone13,2", 3095201109, 4},  // iPhone 12
     {"iPhone13,3", 3095201109, 4},  // iPhone 12 Pro
@@ -189,6 +191,7 @@ static struct bbdevice bbdevices[] = {
     {"iPhone14,3", 495958265, 4},  // iPhone 13 Pro
     {"iPhone14,4", 495958265, 4},  // iPhone 13 mini
     {"iPhone14,5", 495958265, 4},  // iPhone 13
+    {"iPhone14,6", 0, 0},  // iPhone SE (3rd gen)
     
     // iPads
     {"iPad1,1",  0, 0},          // iPad (1st gen)
@@ -240,6 +243,8 @@ static struct bbdevice bbdevices[] = {
     {"iPad11,4", 165673526, 12}, // iPad Air (3rd gen, Cellular)
     {"iPad13,1", 0, 0},          // iPad Air (4th gen, Wi-Fi)
     {"iPad13,2", 524245983, 12}, // iPad Air (4th gen, Cellular)
+    {"iPad13,16", 0, 0},          // iPad Air (5th gen, Wi-Fi)
+    {"iPad13,17", 495958265, 4}, // iPad Air (5th gen, Cellular)
     
     // iPad Pros
     {"iPad6,3",    0, 0},            // iPad Pro (9.7-inch, Wi-Fi)
