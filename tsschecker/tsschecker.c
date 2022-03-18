@@ -123,6 +123,9 @@ static struct bbdevice bbdevices[] = {
     {"Mac13,1", 0, 0}, // Mac Studio (M1 Max, 2022)
     {"Mac13,2", 0, 0}, // Mac Studio (M1 Ultra, 2022)
     
+    // Apple Displays
+    {"AppleDisplay2,1", 0, 0}, // Studio Display
+    
     // Apple T2 Coprocessor
     {"iBridge2,1", 0, 0}, // Apple T2 iMacPro1,1 (j137)
     {"iBridge2,3", 0, 0}, // Apple T2 MacBookPro15,1 (j680)
