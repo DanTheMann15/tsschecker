@@ -1203,7 +1203,7 @@ int isVersionSignedForDevice(jssytok_t *firmwareTokens, t_iosVersion *versVals, 
             
             isSigned = (isSignedOne > 0 || isSigned > 0);
             if (buildManifest) (void)(free(buildManifest)), buildManifest = NULL;
-            info("[INFO] Firmware version %s %s %s being signed!\n",u->version,u->buildID,isSignedOne ? "is" : "isn't");
+            info("[INFO] Firmware version %s %s %s being signed.\n",u->version,u->buildID,isSignedOne ? "is" : "isn't");
         }
         (void)(free(u->url)),u->url = NULL;
         (void)(free(u->buildID)),u->buildID = NULL;
