@@ -422,7 +422,7 @@ int main(int argc, const char * argv[]) {
             free((char*)versVals.version);
             if (--versionCnt == 0) reterror(-9, "[TSSC] automatic firmware selection couldn't find non-beta firmware\n");
         }
-        info("[TSSC] selecting latest version of firmware: %s\n",versVals.version);
+        info("[TSSC] selecting latest version: %s\n",versVals.version);
         if (bpos) *bpos= '\0';
         if (versions) free(versions[versionCnt-1]),free(versions);
     }
@@ -446,7 +446,7 @@ int main(int argc, const char * argv[]) {
             isSigned = isVersionSignedForDevice(firmwareTokens, &versVals, &devVals, serverUrl);
         }
         
-        if (isSigned >=0) printf("\n%s %s for device %s %s being signed!\n",(versVals.buildID) ? "Build" : "iOS" ,(versVals.buildID ? versVals.buildID : versVals.version),devVals.deviceModel, (isSigned) ? "IS" : "IS NOT");
+        if (isSigned >=0) printf("\n%s %s for device %s %s being signed!\n",(versVals.buildID) ? "Build" : "Firmware version" ,(versVals.buildID ? versVals.buildID : versVals.version),devVals.deviceModel, (isSigned) ? "is" : "is NOT");
         else{
             putchar('\n');
             reterror(-69, "[TSSC] checking tss status failed!\n");

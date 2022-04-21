@@ -59,8 +59,6 @@
 #define ECID_STRSIZE 0x20
 #define GET_RAND(min, max) ((rand() % (max - min)) + min)
 
-#define error(a ...) if (idevicerestore_debug) printf(a)
-
 typedef struct {
 	int length;
 	char* content;
@@ -1865,9 +1863,7 @@ char* tss_request_send_raw(char* request, const char* server_url_string, int* re
             info("failure\n");
         }
         
-        if (response->length > 0) {
-            error("TSS server returned: %s\n", response->content);
-        }
+        if (response->length > 0) {}
         
         char* status = strstr(response->content, "STATUS=");
         if (status) {
@@ -1907,9 +1903,9 @@ char* tss_request_send_raw(char* request, const char* server_url_string, int* re
     if (status_code != 0) {
         if (response && strstr(response->content, "MESSAGE=") != NULL) {
             char* message = strstr(response->content, "MESSAGE=") + strlen("MESSAGE=");
-            error("ERROR: TSS request failed (status=%d, message=%s)\n", status_code, message);
+            error("TSS server returned: (status=%d, message=%s)\n", status_code, message);
         } else {
-            error("ERROR: TSS request failed: %s (status=%d)\n", curl_error_message, status_code);
+            error("TSS server returned: %s (status=%d)\n", curl_error_message, status_code);
         }
         free(request);
         if (response)

@@ -533,7 +533,7 @@ malloc_rets:
                     }
                 }
                 
-                info("[TSSC] got firmwareurl for iOS %.*s build %.*s\n",(int)i_vers->size, i_vers->value,(int)i_build->size, i_build->value);
+                info("[TSSC] got firmwareurl for %.*s build %.*s\n",(int)i_vers->size, i_vers->value,(int)i_build->size, i_build->value);
                 rets->version = (char*)malloc(i_vers->size+1);
                 memcpy(rets->version, i_vers->value, i_vers->size);
                 rets->version[i_vers->size] = '\0';
@@ -1088,10 +1088,7 @@ int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVal
         size_t prePathLen= strlen(shshSavePath);
         if (shshSavePath[prePathLen-1] == DIRECTORY_DELIMITER_CHR) prePathLen--;
         strncpy(fname, shshSavePath, prePathLen);
-        
-        snprintf(fname+prePathLen, fnamelen, DIRECTORY_DELIMITER_STR"%s_%s_%s-%s_%s.%shsh%s",cecid,tmpDevicename,cpvers,cbuild, apnonce, save_bplist ? "b" : "", (*devVals->generator || apticket2) ? "2" : "");
-        
-        
+        snprintf(fname+prePathLen, fnamelen, DIRECTORY_DELIMITER_STR"%s_%s_%s-%s_%s.%sshsh%s",cecid,tmpDevicename,cpvers,cbuild, apnonce, save_bplist ? "b" : "", (*devVals->generator || apticket2) ? "2" : "");
         FILE *shshfile = fopen(fname, "wb");
         if (!shshfile) error("[Error] can't save shsh at %s\n",fname);
         else{
@@ -1206,7 +1203,7 @@ int isVersionSignedForDevice(jssytok_t *firmwareTokens, t_iosVersion *versVals, 
             
             isSigned = (isSignedOne > 0 || isSigned > 0);
             if (buildManifest) (void)(free(buildManifest)), buildManifest = NULL;
-            info("Firmware version %s %s %s signed!\n",u->version,u->buildID,isSignedOne ? "IS" : "IS NOT");
+            info("[INFO] Firmware version %s %s %s being signed!\n",u->version,u->buildID,isSignedOne ? "is" : "isn't");
         }
         (void)(free(u->url)),u->url = NULL;
         (void)(free(u->buildID)),u->buildID = NULL;
