@@ -25,7 +25,7 @@
 #include "tsschecker.h"
 #include "all.h"
 
-#define FLAG_LIST_IOS       (1 << 0)
+#define FLAG_LIST_VERSIONS       (1 << 0)
 #define FLAG_LIST_DEVICES   (1 << 1)
 #define FLAG_BUILDMANIFEST  (1 << 2)
 #define FLAG_LATEST_IOS     (1 << 3)
@@ -48,7 +48,7 @@ static struct option longopts[] = {
     { "buildid",            required_argument, NULL, 'Z' },
     { "debug",              no_argument,       NULL,  0  },
     { "list-devices",       no_argument,       NULL,  1  },
-    { "list-ios",           no_argument,       NULL,  2  },
+    { "list-versions",      no_argument,       NULL,  2  },
     { "save-path",          required_argument, NULL,  3  },
     { "print-tss-request",  no_argument,       NULL,  4  },
     { "print-tss-response", no_argument,       NULL,  5  },
@@ -89,8 +89,8 @@ void cmd_help(){
     printf("      --server-url URL\t\tmanually specify TSS server URL\n");
     printf("      --bplist\t\t\tsave fetched blobs in a binary plist (.bshsh2 format)\n");
     printf("      --beta\t\t\trequest tickets for a beta instead of normal release (use with -o)\n");
-    printf("      --list-devices\t\tlist all known devices\n");
-    printf("      --list-ios\t\tlist all known firmware versions\n");
+    printf("      --list-devices\t\tlist known devices from firmwares.json\n");
+    printf("      --list-versions\t\tlist all known firmware versions for the specified device\n");
     printf("      --nocache \t\tignore caches and re-download required files\n");
     printf("      --print-tss-request\tprint the TSS request that will be sent to Apple\n");
     printf("      --print-tss-response\tprint the TSS response that comes from Apple\n");
@@ -253,8 +253,8 @@ int main(int argc, const char * argv[]) {
             case 1: // only long option: "list-devices"
                 flags |= FLAG_LIST_DEVICES;
                 break;
-            case 2: // only long option: "list-ios"
-                flags |= FLAG_LIST_IOS;
+            case 2: // only long option: "list-versions"
+                flags |= FLAG_LIST_VERSIONS;
                 break;
             case 3: // only long option: "save-path"
                 shshSavePath = optarg;
@@ -429,7 +429,7 @@ int main(int argc, const char * argv[]) {
     
     if (flags & FLAG_LIST_DEVICES) {
         printListOfDevices(firmwareTokens);
-    }else if (flags & FLAG_LIST_IOS){
+    }else if (flags & FLAG_LIST_VERSIONS){
         if (!devVals.deviceModel)
             reterror(-3,"[TSSC] please specify a device for this option\n\tuse -h for more help\n");
 
