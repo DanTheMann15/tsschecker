@@ -104,8 +104,8 @@ Example: `tsschecker -d iPhone10,3 -B D22AP -e 5482657301265 -i 15.4.1 --generat
 |							| `--server-url URL`				| manually specify TSS server URL																																																					|
 |							| `--bplist`							| save fetched blobs in a binary plist (.bshsh2 format)																																													|
 |							| `--beta`								| request tickets for a beta instead of normal release (use with -o)																																							|
-|							| `--list-devices`					| list all known devices																																																									|
-|							| `--list-ios`							| list all known firmware versions																																																					|
+|							| `--list-devices`					| list known devices from firmwares.json																																																		|
+|							| `--list-versions`				| list all known firmware versions for the specified device																																											|
 |							| `--nocache`						| ignore caches and re-download required files																																															|
 |							| `--print-tss-request`			| print the TSS request that will be sent to Apple																																															|
 |							| `--print-tss-response`		| print the TSS response that comes from Apple																																															|
