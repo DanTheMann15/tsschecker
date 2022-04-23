@@ -80,14 +80,14 @@ make install
 # Help  
 Usage: `tsschecker [OPTIONS]`
 
-Example: `tsschecker -d iPhone10,3 -B D22AP -e 5482657301265 -i 14.7.1 --generator 0x1111111111111111 -s`
+Example: `tsschecker -d iPhone10,3 -B D22AP -e 5482657301265 -i 15.4.1 --generator 0x1111111111111111 -s`
 
 | option (short)	| option (long)					| description																																																													|
 |	------------------	|	------------------------------	|	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------	|
 |	`-h`					| `--help`								| prints usage information																																																								|        
 |	`-d`					| `--device MODEL`			| specify device by its model (eg. iPhone10,3)																																																|
-|	`-i`					| `--ios VERSION`				| specify firmware version (eg. 14.7.1)																																																			|
-|	`-Z`					| `--buildid BUILD `				| specify buildid instead of firmware version (eg. 18G82)																																											|
+|	`-i`					| `--ios VERSION`				| specify firmware version (eg. 15.4.1)																																																			|
+|	`-Z`					| `--buildid BUILD `				| specify buildid instead of firmware version (eg. 19E258)																																											|
 |	`-B`					| `--boardconfig BOARD `	| specify boardconfig instead of device model (eg. d22ap)																																											|
 |	`-o`					| `--ota`								| check OTA signing status, instead of normal restore																																													|
 |	`-b`					| `--no-baseband`				| don't check baseband signing status. Request tickets without baseband																																					|
@@ -102,7 +102,7 @@ Example: `tsschecker -d iPhone10,3 -B D22AP -e 5482657301265 -i 14.7.1 --generat
 |							| `--bbsnum SNUM`			| manually specify BbSNUM in HEX to save valid BBTickets (not required for saving blobs)																														|
 |							| `--save-path PATH`			| specify output path for saving shsh blobs																																																	|
 |							| `--server-url URL`				| manually specify TSS server URL																																																					|
-|							| `--bplist`							| save the fetched blobs in a binary plist (as a .bshsh2 file)																																										|
+|							| `--bplist`							| save fetched blobs in a binary plist (.bshsh2 format)																																													|
 |							| `--beta`								| request tickets for a beta instead of normal release (use with -o)																																							|
 |							| `--list-devices`					| list all known devices																																																									|
 |							| `--list-ios`							| list all known firmware versions																																																					|

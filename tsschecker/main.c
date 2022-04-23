@@ -69,8 +69,8 @@ void cmd_help(){
     printf("Usage: tsschecker [OPTIONS]\n\n");
     printf("  -h, --help\t\t\tprints usage information\n");
     printf("  -d, --device MODEL\t\tspecify device by its model (eg. iPhone10,3)\n");
-    printf("  -i, --ios VERSION\t\tspecify firmware version (eg. 14.7.1)\n");
-    printf("  -Z  --buildid BUILD\t\tspecify buildid instead of firmware version (eg. 18G82)\n");
+    printf("  -i, --ios VERSION\t\tspecify firmware version (eg. 15.4.1)\n");
+    printf("  -Z  --buildid BUILD\t\tspecify buildid instead of firmware version (eg. 19E258)\n");
     printf("  -B, --boardconfig BOARD \tspecify boardconfig instead of device model (eg. d22ap)\n");
     printf("  -o, --ota\t\t\tcheck OTA signing status, instead of normal restore\n");
     printf("  -b, --no-baseband\t\tdon't check baseband signing status. Request tickets without baseband\n");
@@ -87,7 +87,7 @@ void cmd_help(){
     printf("      --bbsnum SNUM\t\tmanually specify BbSNUM in HEX to save valid BBTickets (not required for saving blobs)\n\n");
     printf("      --save-path PATH\t\tspecify output path for saving shsh blobs\n");
     printf("      --server-url URL\t\tmanually specify TSS server URL\n");
-    printf("      --bplist\t\t\tsave the fetched blobs in a binary plist (as a .bshsh2 file)\n");
+    printf("      --bplist\t\t\tsave fetched blobs in a binary plist (.bshsh2 format)\n");
     printf("      --beta\t\t\trequest tickets for a beta instead of normal release (use with -o)\n");
     printf("      --list-devices\t\tlist all known devices\n");
     printf("      --list-ios\t\tlist all known firmware versions\n");
