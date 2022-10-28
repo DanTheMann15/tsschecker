@@ -28,7 +28,7 @@ make install
 git -C /app clone --depth=1 --recursive https://github.com/tihmstar/libfragmentzip
 cd /app/libfragmentzip
 cat <<EOF | patch
---- configure.ac1
+--- configure.ac
 +++ configure.ac
 @@ -37,7 +37,7 @@
  LIBCURL_REQUIRES_STR="libcurl >= 1.0"
