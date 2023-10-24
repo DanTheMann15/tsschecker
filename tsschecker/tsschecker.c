@@ -22,7 +22,11 @@
 #include <libfragmentzip/libfragmentzip.h>
 #include <libirecovery.h>
 
-#ifdef __APPLE__
+#ifdef WIN32
+#   include <windows.h>
+#   include <bcrypt.h>
+#   include <ntstatus.h>
+#elif defined(__APPLE__)
 #   include <CommonCrypto/CommonDigest.h>
 #   define SHA1(d, n, md) CC_SHA1(d, n, md)
 #   define SHA384(d, n, md) CC_SHA384(d, n, md)
@@ -41,7 +45,6 @@
 #define printJString(str) printf("%.*s",(int)str->size,str->value)
 
 #ifdef WIN32
-#include <windows.h>
 #define __mkdir(path, mode) mkdir(path)
 static int win_path_didinit = 0;
 static const char *win_paths[4];
@@ -376,6 +379,82 @@ static struct bbdevice bbdevices[] = {
 
 inline static t_bbdevice bbdevices_get_all() {
     return bbdevices;
+}
+
+void sha1(unsigned char *buf, uint8_t bufSz, char* dest, uint8_t destSz) {
+#ifdef WIN32
+    BCRYPT_ALG_HANDLE hAlg = NULL;
+    BCRYPT_HASH_HANDLE hHash = NULL;
+    NTSTATUS status = STATUS_UNSUCCESSFUL;
+    DWORD size = 0;
+
+    status = BCryptOpenAlgorithmProvider(&hAlg, BCRYPT_SHA1_ALGORITHM, NULL, 0);
+    if (status != STATUS_SUCCESS) {
+        error("BCryptOpenAlgorithmProvider failed: 0x%x", status);
+        exit(1);
+    }
+
+    status = BCryptCreateHash(hAlg, &hHash, NULL, 0, NULL, 0, 0);
+    if (status != STATUS_SUCCESS) {
+        error("BCryptCreateHash failed: 0x%x", status);
+        exit(1);
+    }
+
+    status = BCryptHashData(hHash, buf, bufSz, 0);
+    if (status) {
+        printf("BCryptHashData failed: 0x%x\n", status);
+        exit(1);
+    }
+
+    status =  BCryptFinishHash(hHash, dest, destSz, 0);
+    if (status) {
+        printf("BCryptFinishHash failed: 0x%x\n", status);
+        exit(1);
+    }
+
+    BCryptCloseAlgorithmProvider(hAlg,0);
+    BCryptDestroyHash(hHash);
+#else
+    SHA1(buf, bufSz, (unsigned char*)dest);
+#endif
+}
+
+void sha384(unsigned char *buf, uint8_t bufSz, char* dest, uint8_t destSz) {
+#ifdef WIN32
+    BCRYPT_ALG_HANDLE hAlg = NULL;
+    BCRYPT_HASH_HANDLE hHash = NULL;
+    NTSTATUS status = STATUS_UNSUCCESSFUL;
+    DWORD size = 0;
+
+    status = BCryptOpenAlgorithmProvider(&hAlg, BCRYPT_SHA384_ALGORITHM, NULL, 0);
+    if (status != STATUS_SUCCESS) {
+        error("BCryptOpenAlgorithmProvider failed: 0x%x", status);
+        exit(1);
+    }
+
+    status = BCryptCreateHash(hAlg, &hHash, NULL, 0, NULL, 0, 0);
+    if (status != STATUS_SUCCESS) {
+        error("BCryptCreateHash failed: 0x%x", status);
+        exit(1);
+    }
+
+    status = BCryptHashData(hHash, buf, bufSz, 0);
+    if (status) {
+        printf("BCryptHashData failed: 0x%x\n", status);
+        exit(1);
+    }
+
+    status =  BCryptFinishHash(hHash, dest, destSz, 0);
+    if (status) {
+        printf("BCryptFinishHash failed: 0x%x\n", status);
+        exit(1);
+    }
+
+    BCryptCloseAlgorithmProvider(hAlg,0);
+    BCryptDestroyHash(hHash);
+#else
+    SHA384(buf, bufSz, dest);
+#endif
 }
 
 char *getFirmwareJson(){
@@ -891,7 +970,7 @@ int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
             getRandNum((char*)zz, 8, 256);
             snprintf(devVals->generator, 19, "0x%02x%02x%02x%02x%02x%02x%02x%02x",zz[7],zz[6],zz[5],zz[4],zz[3],zz[2],zz[1],zz[0]);
         makesha1:
-            SHA1(zz, 8, (unsigned char*)devVals->apnonce);
+            sha1(zz, 8, devVals->apnonce, 20);
         }else if (nonceLen == 32){
             unsigned char zz[9] = {0};
             unsigned char genHash[48]; //SHA384 digest length
@@ -910,7 +989,7 @@ int tss_populate_random(plist_t tssreq, int is64bit, t_devicevals *devVals){
             getRandNum((char*)zz, 8, 256);
             snprintf(devVals->generator, 19, "0x%02x%02x%02x%02x%02x%02x%02x%02x",zz[7],zz[6],zz[5],zz[4],zz[3],zz[2],zz[1],zz[0]);
         makesha384:
-            SHA384(zz, 8, genHash);
+            sha384(zz, 8, genHash, 48);
             memcpy(devVals->apnonce, genHash, 32);
         }else{
             return error("[TSSR] Automatic generator->nonce calculation failed! Unknown device with noncelen=%u\n",(unsigned int)nonceLen),-1;
