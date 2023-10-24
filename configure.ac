@@ -1,5 +1,5 @@
 AC_PREREQ([2.69])
-AC_INIT([tsschecker], [1.0.4], [tihmstar@gmail.com])
+AC_INIT([tsschecker],[1.1.0],[tihmstar@gmail.com])
 
 # Prepare for automake.
 AM_INIT_AUTOMAKE([foreign])
@@ -35,8 +35,8 @@ AM_CONDITIONAL([OSX], [test "$build_mac" = "yes"])
 AC_PROG_CC
 CFLAGS+=" -std=gnu11"
 AC_PROG_INSTALL
-AC_PROG_LIBTOOL
 AC_CONFIG_MACRO_DIRS([m4])
+LT_INIT
 
 # Versioning.
 CFLAGS+=" -D TSSCHECKER_VERSION_COUNT=\\\"$(git rev-list --count HEAD | tr -d '\n')\\\""
@@ -45,13 +45,16 @@ CFLAGS+=" -D TSSCHECKER_VERSION_SHA=\\\"$(git rev-parse HEAD | tr -d '\n')\\\""
 # Checks for libraries.
 AC_ARG_WITH(
     [libcrypto],
-    [AS_HELP_STRING([--with-libcrypto], [build with libcrypto (default for non-Mac)])],
+    [AS_HELP_STRING([--with-libcrypto], [build with libcrypto (default for non-Mac/Windows)])],
     [],
     [
         case "${host_os}" in
             darwin*)
                 with_libcrypto=no
                 ;;
+			cygwin*|mingw*)
+				with_libcrypto=no
+				;;
             *)
                 with_libcrypto=yes
                 ;;
@@ -59,13 +62,13 @@ AC_ARG_WITH(
     ]
 )
 
-PKG_CHECK_MODULES(libplist, libplist-2.0 >= 2.2.0)
-PKG_CHECK_MODULES(libcurl, libcurl >= 1.0)
+PKG_CHECK_MODULES(libplist, libplist-2.0 >= 2.3.0)
+PKG_CHECK_MODULES(libcurl, libcurl >= 7.20.0)
 PKG_CHECK_MODULES(libfragmentzip, libfragmentzip >= 48)
 AS_IF([test "x$with_libcrypto" != xno],
     [PKG_CHECK_MODULES(libcrypto, libcrypto >= 1.0)]
 )
-PKG_CHECK_MODULES(libirecovery, libirecovery-1.0 >= 1.0.0)
+PKG_CHECK_MODULES(libirecovery, libirecovery-1.0 >= 1.1.0)
 
 # Checks for header files.
 AC_CHECK_HEADERS([getopt.h stddef.h stdio.h])
