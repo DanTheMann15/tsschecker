@@ -139,6 +139,17 @@ static struct bbdevice bbdevices[] = {
     {"Mac14,13", 0, 0},        // Mac Studio (M2 Pro, 2023)
     {"Mac14,14", 0, 0},        // Mac Studio (M2 Ultra, 2023)
     {"Mac14,15", 0, 0},        // MacBook Air (15-inch, M2, 2023)
+    {"Mac15,3", 0, 0},         // MacBook Pro (14-inch, M3, Nov 2023)
+    {"Mac15,4", 0, 0},         // iMac 24-inch (M3, Two Ports, 2023)
+    {"Mac15,5", 0, 0},         // iMac 24-inch (M3, Four Ports, 2023)
+    {"Mac15,6", 0, 0},         // MacBook Pro (14-inch, M3 Pro, Nov 2023)
+    {"Mac15,7", 0, 0},         // MacBook Pro (16-inch, M3 Pro, Nov 2023)
+    {"Mac15,8", 0, 0},         // MacBook Pro (14-inch, M3 Max, Nov 2023)
+    {"Mac15,9", 0, 0},         // MacBook Pro (16-inch, M3 Max, Nov 2023)
+    {"Mac15,10", 0, 0},        // MacBook Pro (14-inch, M3 Max, Nov 2023)
+    {"Mac15,11", 0, 0},        // MacBook Pro (16-inch, M3 Max, Nov 2023)
+    {"Mac15,12", 0, 0},        // MacBook Air (13-inch, M3, 2024)
+    {"Mac15,13", 0, 0},        // MacBook Air (15-inch, M3, 2024)
     
     // Apple Displays
     {"AppleDisplay2,1", 0, 0}, // Studio Display
@@ -277,6 +288,10 @@ static struct bbdevice bbdevices[] = {
     {"iPad13,2",   524245983, 12},   // iPad Air (4th gen, Cellular)
     {"iPad13,16",  0, 0},            // iPad Air (5th gen, Wi-Fi)
     {"iPad13,17",  495958265, 4},    // iPad Air (5th gen, Cellular)
+    {"iPad14,8",   0, 0},            // iPad Air (11-inch, M2, Wi-Fi)
+    {"iPad14,9",   495958265, 4},    // iPad Air (11-inch, M2, Cellular)
+    {"iPad14,10",  0, 0},            // iPad Air (13-inch, M2, Wi-Fi)
+    {"iPad14,11",  495958265, 4},    // iPad Air (13-inch, M2, Cellular)
     
     // iPad Pros
     {"iPad6,3",    0, 0},            // iPad Pro (9.7-inch, Wi-Fi)
@@ -311,7 +326,10 @@ static struct bbdevice bbdevices[] = {
     {"iPad14,4",   3559316616, 4},   // iPad Pro (11-inch, 4th gen, Cellular)
     {"iPad14,5",   0, 0},            // iPad Pro (12.9-inch, 6th gen, Wi-Fi)
     {"iPad14,6",   3559316616, 4},   // iPad Pro (12.9-inch, 6th gen, Cellular)
-
+    {"iPad16,3",   0, 0},            // iPad Pro (11-inch, M4, Wi-Fi)
+    {"iPad16,4",   3452763205, 4},   // iPad Pro (11-inch, M4, Cellular)
+    {"iPad16,5",   0, 0},            // iPad Pro (13-inch, M4, Wi-Fi)
+    {"iPad16,6",   3452763205, 4},   // iPad Pro (13-inch, M4, Cellular)
     
     // Apple Watches
     {"Watch1,1",   0, 0},            // Apple Watch 1st gen (38mm)
