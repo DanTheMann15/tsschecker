@@ -233,6 +233,10 @@ static struct bbdevice bbdevices[] = {
     {"iPhone15,5", 3452763205, 4},   // iPhone 15 Plus
     {"iPhone16,1", 3452763205, 4},   // iPhone 15 Pro
     {"iPhone16,2", 3452763205, 4},   // iPhone 15 Pro Max
+    {"iPhone17,1", 0, 0},   // iPhone 16 Pro
+    {"iPhone17,2", 0, 0},   // iPhone 16 Pro Max
+    {"iPhone17,3", 0, 0},   // iPhone 16
+    {"iPhone17,4", 0, 0},   // iPhone 16 Plus
     
     // iPads
     {"iPad1,1",    0, 0},            // iPad (1st gen)
@@ -376,6 +380,10 @@ static struct bbdevice bbdevices[] = {
     {"Watch7,3",   744114402, 12},   // Apple Watch Series 9 (41mm, GPS + Cellular)
     {"Watch7,4",   744114402, 12},   // Apple Watch Series 9 (45mm, GPS + Cellular)
     {"Watch7,5",   744114402, 12},   // Apple Watch Ultra 2 (49mm, GPS + Cellular)
+    {"Watch7,8",   0, 0},            // Apple Watch Series 10 (42mm, GPS)
+    {"Watch7,9",   0, 0},            // Apple Watch Series 10 (46mm, GPS)
+    {"Watch7,10",  744114402, 12},   // Apple Watch Series 10 (42mm, GPS + Cellular)
+    {"Watch7,11",  744114402, 12},   // Apple Watch Series 10 (46mm, GPS + Cellular)
     
     // HomePods
     {"AudioAccessory1,1",   0, 0},   // HomePod 1st gen
