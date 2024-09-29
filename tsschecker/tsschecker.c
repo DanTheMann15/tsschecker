@@ -233,10 +233,10 @@ static struct bbdevice bbdevices[] = {
     {"iPhone15,5", 3452763205, 4},   // iPhone 15 Plus
     {"iPhone16,1", 3452763205, 4},   // iPhone 15 Pro
     {"iPhone16,2", 3452763205, 4},   // iPhone 15 Pro Max
-    {"iPhone17,1", 0, 0},   // iPhone 16 Pro
-    {"iPhone17,2", 0, 0},   // iPhone 16 Pro Max
-    {"iPhone17,3", 0, 0},   // iPhone 16
-    {"iPhone17,4", 0, 0},   // iPhone 16 Plus
+    {"iPhone17,1", 1652214800, 4},   // iPhone 16 Pro
+    {"iPhone17,2", 1652214800, 4},   // iPhone 16 Pro Max
+    {"iPhone17,3", 1652214800, 4},   // iPhone 16
+    {"iPhone17,4", 1652214800, 4},   // iPhone 16 Plus
     
     // iPads
     {"iPad1,1",    0, 0},            // iPad (1st gen)
