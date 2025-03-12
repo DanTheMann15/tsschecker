@@ -18,6 +18,7 @@
 #include <strings.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <errno.h>
 
 #include <libfragmentzip/libfragmentzip.h>
 #include "download.h"
@@ -225,8 +226,15 @@ int main(int argc, const char * argv[]) {
                 info("[TSSC] User manually specified generator \"%s\"\n",devVals.generator);
                 break;
             case 'b': // long option: "no-baseband"; can be called as short option
-                if (optarg) versVals.basebandMode = atoi(optarg);
-                else versVals.basebandMode = kBasebandModeWithoutBaseband;
+                if (optarg) {
+                  errno = 0;
+                  versVals.basebandMode = (int)strtol(optarg, NULL, 10);
+                  if(errno != 0) {
+                    versVals.basebandMode = kBasebandModeWithoutBaseband;
+                  }
+                } else {
+                  versVals.basebandMode = kBasebandModeWithoutBaseband;
+                }
                 break;
             case 'u': // long option: "update-install"; can be called as short option
                     devVals.installType = kInstallTypeUpdate;
@@ -253,6 +261,9 @@ int main(int argc, const char * argv[]) {
                 break;
             case 0: // only long option: "debug"
                 idevicerestore_debug = 1;
+                tss_set_print_tss_request(1);
+                tss_set_print_tss_response(1);
+                tss_set_debug_level(3);
                 break;
             case 1: // only long option: "list-devices"
                 flags |= FLAG_LIST_DEVICES;
@@ -264,10 +275,10 @@ int main(int argc, const char * argv[]) {
                 shshSavePath = optarg;
                 break;
             case 4: // only long option: "print-tss-request"
-                print_tss_request = 1;
+                tss_set_print_tss_request(1);
                 break;
             case 5: // only long option: "print-tss-response"
-                print_tss_response = 1;
+                tss_set_print_tss_response(1);
                 break;
             case 6: // only long option: "beta"
                 versVals.useBeta = 1;
@@ -284,6 +295,9 @@ int main(int argc, const char * argv[]) {
             case 10: // only long option: "raw"
                 rawFilePath = optarg;
                 idevicerestore_debug = 1;
+                tss_set_print_tss_request(1);
+                tss_set_print_tss_response(1);
+                tss_set_debug_level(3);
                 break;
             case 11: // only long option: "bbsnum"
                 bbsnum = optarg;

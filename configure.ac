@@ -62,13 +62,14 @@ AC_ARG_WITH(
     ]
 )
 
-PKG_CHECK_MODULES(libplist, libplist-2.0 >= 2.3.0)
+PKG_CHECK_MODULES(libplist, libplist-2.0 >= 2.6.0)
+PKG_CHECK_MODULES(libtatsu, libtatsu-1.0 >= 1.0.4)
 PKG_CHECK_MODULES(libcurl, libcurl >= 7.20.0)
 PKG_CHECK_MODULES(libfragmentzip, libfragmentzip >= 48)
 AS_IF([test "x$with_libcrypto" != xno],
     [PKG_CHECK_MODULES(libcrypto, libcrypto >= 1.0)]
 )
-PKG_CHECK_MODULES(libirecovery, libirecovery-1.0 >= 1.1.0)
+PKG_CHECK_MODULES(libirecovery, libirecovery-1.0 >= 1.2.1)
 
 # Checks for header files.
 AC_CHECK_HEADERS([getopt.h stddef.h stdio.h])

@@ -58,15 +58,13 @@ Install or Compile dependencies
   * [libcurl](https://curl.haxx.se/libcurl/)
   * [libirecovery](https://github.com/libimobiledevice/libirecovery)
   * [libplist](https://github.com/libimobiledevice/libplist)
+  * [libtatsu](https://github.com/libimobiledevice/libtatsu)
   * [libzip](https://libzip.org/)
   * [openssl](https://www.openssl.org/) (or you can use CommonCrypto on macOS/OS X)
   * [zlib](https://zlib.net/)
   
 * Submodules:
   * [jssy](https://github.com/tihmstar/jssy)
-  
-* Bundled libs, (not required to be installed manually):
-  * [tss](https://github.com/libimobiledevice)
 
 To compile, run:
 
