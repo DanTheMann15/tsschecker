@@ -149,6 +149,7 @@ static struct bbdevice bbdevices[] = {
     {"Mac15,11", 0, 0},        // MacBook Pro (16-inch, M3 Max, Nov 2023)
     {"Mac15,12", 0, 0},        // MacBook Air (13-inch, M3, 2024)
     {"Mac15,13", 0, 0},        // MacBook Air (15-inch, M3, 2024)
+    {"Mac15,14", 0, 0},        // Mac Studio (M3 Ultra, 2025)
     {"Mac16,1", 0, 0},         // MacBook Pro (14-inch, M4, Nov 2024)
     {"Mac16,2", 0, 0},         // iMac 24-inch (M4, Two Ports, 2024)
     {"Mac16,3", 0, 0},         // iMac 24-inch (M4, Four Ports, 2024)
@@ -156,8 +157,11 @@ static struct bbdevice bbdevices[] = {
     {"Mac16,6", 0, 0},         // MacBook Pro (14-inch, M4 Pro, Nov 2024)
     {"Mac16,7", 0, 0},         // MacBook Pro (16-inch, M4 Pro, Nov 2024)
     {"Mac16,8", 0, 0},         // MacBook Pro (14-inch, M4 Pro, Nov 2024)
+    {"Mac16,9", 0, 0},         // Mac Studio (M4 Max, 2025)
     {"Mac16,10", 0, 0},        // Mac mini (M4, 2024)
     {"Mac16,11", 0, 0},        // Mac mini (M4 Pro, 2024)
+    {"Mac16,12", 0, 0},        // MacBook Air (13-inch, M4, 2025)
+    {"Mac16,13", 0, 0},        // MacBook Air (15-inch, M4, 2025)
     
     // Apple Displays
     {"AppleDisplay2,1", 0, 0}, // Studio Display
@@ -245,6 +249,7 @@ static struct bbdevice bbdevices[] = {
     {"iPhone17,2", 1652214800, 4},   // iPhone 16 Pro Max
     {"iPhone17,3", 1652214800, 4},   // iPhone 16
     {"iPhone17,4", 1652214800, 4},   // iPhone 16 Plus
+    {"iPhone17,5", 4, 0},            // iPhone 16e
     
     // iPads
     {"iPad1,1",    0, 0},            // iPad (1st gen)
@@ -270,6 +275,8 @@ static struct bbdevice bbdevices[] = {
     {"iPad12,2",   165673526, 12},   // iPad (9th gen, 2021, Cellular)
     {"iPad13,18",  0, 0},            // iPad (10th gen, 2022, Wi-Fi)
     {"iPad13,19",  495958265, 4},    // iPad (10th gen, 2022, Cellular)
+    {"iPad15,7",   0, 0},            // iPad (A16, 2025, Wi-Fi)
+    {"iPad15,8",   3452763205, 4},   // iPad (A16, 2025, Cellular)
     
     // iPad minis
     {"iPad2,5",    0, 0},            // iPad mini (1st gen, Wi-Fi)
@@ -306,6 +313,10 @@ static struct bbdevice bbdevices[] = {
     {"iPad14,9",   495958265, 4},    // iPad Air (11-inch, M2, Cellular)
     {"iPad14,10",  0, 0},            // iPad Air (13-inch, M2, Wi-Fi)
     {"iPad14,11",  495958265, 4},    // iPad Air (13-inch, M2, Cellular)
+    {"iPad15,3",   0, 0},            // iPad Air (11-inch, M3, Wi-Fi)
+    {"iPad15,4",   3452763205, 4},   // iPad Air (11-inch, M3, Cellular)
+    {"iPad15,5",   0, 0},            // iPad Air (13-inch, M3, Wi-Fi)
+    {"iPad15,6",   3452763205, 4},   // iPad Air (13-inch, M3, Cellular)
     
     // iPad Pros
     {"iPad6,3",    0, 0},            // iPad Pro (9.7-inch, Wi-Fi)
