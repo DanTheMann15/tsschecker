@@ -1821,7 +1821,7 @@ int isVersionSignedForDevice(jssytok_t *firmwareTokens, t_swVersion *versVals, t
         return 1;
     }
 
-    if(devVals->deviceModel && (!strcasecmp(devVals->deviceModel, "iPhone1,1") || !strcasecmp(devVals->deviceModel, "iPod1,1")) {
+/*     if(devVals->deviceModel && (!strcasecmp(devVals->deviceModel, "iPhone1,1") || !strcasecmp(devVals->deviceModel, "iPod1,1")) {
         info("[TSSC] The 1st generation iPhone and iPod touch do not use signing blobs at all.\n\tSkipping checks and returning true.\n";
         return 1;
     }
@@ -1829,7 +1829,7 @@ int isVersionSignedForDevice(jssytok_t *firmwareTokens, t_swVersion *versVals, t
     if(devVals->deviceBoard && (!strcasecmp(devVals->deviceBoard, "m68ap") || !strcasecmp(devVals->deviceBoard, "n45ap")) {
         info("[TSSC] The 1st generation iPhone and iPod touch do not use signing blobs at all.\n\tSkipping checks and returning true.\n";
         return 1;
-    }
+    } */
 
     int isSigned = -1;
     int isSignedOne = 0;
