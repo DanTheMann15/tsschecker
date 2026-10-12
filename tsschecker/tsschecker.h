@@ -54,7 +54,7 @@ struct bbdevice{
 };
 
 typedef struct bbdevice* t_bbdevice;
-    
+
 typedef enum{
     kInstallTypeDefault = 0, //default is always erase install
     kInstallTypeUpdate = 1,
@@ -66,13 +66,16 @@ typedef struct{
     char *deviceBoard;
     char *apnonce;
     char *sepnonce;
+    char *cryptexnonce;
     uint64_t ecid;
     uint64_t bbgcid;
     size_t parsedApnonceLen;
     size_t parsedSepnonceLen;
+    size_t parsedCryptexnonceLen;
     uint8_t *bbsnum;
     size_t bbsnumSize;
     char generator[19];
+    char cryptexseed[36];
     union{
         t_installType installType : 2;
         union{
@@ -95,7 +98,7 @@ typedef struct{
     t_basebandMode basebandMode;
     int isOta       : 1;
     int useBeta     : 1;
-}t_iosVersion;
+}t_swVersion;
     
 typedef struct{
     char *url;
@@ -107,24 +110,30 @@ typedef struct{
 int parseHex(const char *nonce, size_t *parsedLen, char *ret, size_t *retSize);
 
 char *getFirmwareJson(void);
+char *getBetaFirmwareJson2(const char *type, const char *buildid);
+char *getBetaFirmwareJson(const char *device);
 char *getOtaJson(void);
 long parseTokens(const char *json, jssytok_t **tokens);
-char **getListOfiOSForDevice(jssytok_t *tokens, const char *device, int isOTA, int *versionCntt);
+char **getgetListOfVersionsForDevice(jssytok_t *tokens, const char *device, int isOTA, int *versionCntt, bool beta);
+char **getgetListOfVersionsForDevice2(jssytok_t *tokens, const char *device, int isOTA, int *versionCntt, int buildid, bool beta);
+char *getBetaURLForDevice2(jssytok_t *tokens, const char *buildid);
+char *getBetaURLForDevice(jssytok_t *tokens, const char *buildid);
 int printListOfDevices(jssytok_t *tokens);
-int printListOfiOSForDevice(jssytok_t *tokens, char *device, int isOTA);
-    
-char *getFirmwareUrl(const char *deviceModel, t_iosVersion *versVals, jssytok_t *tokens);
+int printListOfVersionsForDevice(jssytok_t *tokens, char *device, int isOTA);
+
+char *getFirmwareUrl(const char *deviceModel, t_swVersion *versVals, jssytok_t *tokens, bool beta, bool ota);
+t_versionURL *getFirmwareUrls(const char *deviceModel, t_swVersion *versVals, jssytok_t *tokens, bool beta, bool ota);
 char *getBuildManifest(char *url, const char *device, const char *version, const char *buildID, int isOta);
 t_bbdevice getBBDeviceInfo(const char *deviceModel);
 
 int tssrequest(plist_t *tssrequest, char *buildManifest, t_devicevals *devVals, t_basebandMode basebandMode);
-int isManifestSignedForDevice(const char *buildManifestPath, t_devicevals *devVals, t_iosVersion *versVals, const char* server_url_string);
+int isManifestSignedForDevice(const char *buildManifestPath, t_devicevals *devVals, t_swVersion *versVals, const char* server_url_string);
 int isManifestBufSignedForDevice(char *buildManifestBuffer, t_devicevals *devVals, t_basebandMode basebandMode, const char* server_url_string);
-int isVersionSignedForDevice(jssytok_t *firmwareTokens, t_iosVersion *versVals, t_devicevals *devVals, const char* server_url_string);
+int isVersionSignedForDevice(jssytok_t *firmwareTokens, t_swVersion *versVals, t_devicevals *devVals, const char* server_url_string);
 
 jssytok_t *getFirmwaresForDevice(const char *device, jssytok_t *tokens, int isOta);
 
-int checkFirmwareForDeviceExists(t_devicevals *devVals, t_iosVersion *versVals, jssytok_t *tokens);
+int checkFirmwareForDeviceExists(t_devicevals *devVals, t_swVersion *versVals, jssytok_t *tokens);
 
 int downloadPartialzip(const char *url, const char *file, const char *dst);
 
