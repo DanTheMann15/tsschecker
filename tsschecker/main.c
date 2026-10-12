@@ -274,7 +274,7 @@ int main(int argc, const char * argv[]) {
                     printf("[TSSC] Manually setting install type = Erase\n");
                 break;
             case 'l': // long option: "latest"; can be called as short option
-                flags |= FLAG_LATEST_IOS;
+                flags |= FLAG_LATEST_VERSION;
                 break;
             case 's': // long option: "save"; can be called as short option
                 save_shshblobs = 1;
