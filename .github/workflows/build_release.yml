@@ -1,0 +1,562 @@
+name: Build & Release
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  SSL_LIBRARY: openssl
+  LIBPLIST_VERSION: 2.7.0
+  LIBIMOBILEDEVICE__GLUE_VERSION: 1.3.2
+  LIBIRECOVERY_VERSION: 1.1.0
+  ZLIB_VERSION: 1.3.2
+  WOLFSSL_VERSION: 5.9.1
+  OPENSSL_VERSION: 3.5.7
+  LIBCURL_VERSION: 8.21.0
+  LIBTATSU_VERSION: 1.0.5
+
+jobs:
+
+  build-win-lin:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        triple:
+        - x86_64-linux-musl
+        - arm-linux-musleabi
+        - aarch64-linux-musl
+        - mips-linux-musl
+        - mipsel-linux-musl
+        - riscv32-linux-musl
+        - riscv64-linux-musl
+        - x86_64-w64-mingw32
+
+    env:
+      TRIPLE: ${{ matrix.triple }}
+      TOOLCHAIN: ${{ matrix.triple }}-cross
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          fetch-depth: 0
+          filter: tree:0
+
+      - name: setup environment
+        run: |
+          export WORKSPACE=${HOME}/workspace
+
+          mkdir -p ${WORKSPACE}/build_source ${WORKSPACE}/build_work ${WORKSPACE}/build_base
+
+          echo "BUILD_SOURCE=${WORKSPACE}/build_source" >> $GITHUB_ENV
+          echo "BUILD_WORK=${WORKSPACE}/build_work" >> $GITHUB_ENV
+          echo "BUILD_BASE=${WORKSPACE}/build_base" >> $GITHUB_ENV
+
+          export ARCH=$(echo ${{ matrix.triple }} | cut -d- -f 1)
+          export OS=$(echo ${{ matrix.triple }} | cut -d- -f 2)
+
+          if [ "${OS}" = "w64" ]; then
+            echo "OS=win" >> $GITHUB_ENV
+            echo "EXE_SUFFIX=.exe" >> $GITHUB_ENV
+          else
+            echo "OS=${OS}" >> $GITHUB_ENV
+            echo "EXE_SUFFIX=" >> $GITHUB_ENV
+          fi
+          echo "ARCH=${ARCH}" >> $GITHUB_ENV
+
+      - name: Download and setup toolchain
+        run: |
+          wget -nc -P ${BUILD_SOURCE} \
+            https://stor.tsssaver.1conan.com/toolchains/${TOOLCHAIN}.tgz
+          tar xf ${BUILD_SOURCE}/${TOOLCHAIN}.tgz -C ${HOME}
+
+          echo "${HOME}/${TOOLCHAIN}/bin" >> $GITHUB_PATH
+
+          echo "CC=${TRIPLE}-gcc" >> $GITHUB_ENV
+          echo "CXX=${TRIPLE}-g++" >> $GITHUB_ENV
+          echo "LD=${TRIPLE}-ld" >> $GITHUB_ENV
+          echo "STRIP=${TRIPLE}-strip" >> $GITHUB_ENV
+          echo "AR=${TRIPLE}-gcc-ar" >> $GITHUB_ENV
+          echo "NM=${TRIPLE}-gcc-nm" >> $GITHUB_ENV
+          echo "RANLIB=${TRIPLE}-gcc-ranlib" >> $GITHUB_ENV
+
+          echo "CFLAGS=-Os -pipe -static -ffunction-sections -fdata-sections -fvisibility=hidden -flto" >> $GITHUB_ENV
+          echo "CXXFLAGS=-Os -pipe -static -ffunction-sections -fdata-sections -fvisibility=hidden -flto" >> $GITHUB_ENV
+          if [ "${OS}" = "win" ]; then
+            # limd/tatsu headers default to __declspec(dllimport) on _WIN32
+            echo "CPPFLAGS=-I${BUILD_BASE}/include -DLIBPLIST_STATIC -DLIMD_GLUE_STATIC -DIRECV_STATIC -DLIBTATSU_STATIC" >> $GITHUB_ENV
+          else
+            echo "CPPFLAGS=-I${BUILD_BASE}/include" >> $GITHUB_ENV
+          fi
+          echo "LDFLAGS=-L${BUILD_BASE}/lib -L${BUILD_BASE}/lib64" >> $GITHUB_ENV
+          echo "PKG_CONFIG_PATH=${BUILD_BASE}/lib/pkgconfig" >> $GITHUB_ENV
+          echo "LD_LIBRARY_PATH=${BUILD_BASE}/lib" >> $GITHUB_ENV
+
+          echo "CONFIGURE_FLAGS=--host=${TRIPLE} --prefix=${BUILD_BASE} --enable-static --disable-shared" >> $GITHUB_ENV
+
+      - name: build zlib
+        run: |
+          wget -nc -P ${BUILD_SOURCE} \
+            https://zlib.net/fossils/zlib-${ZLIB_VERSION}.tar.gz || \
+          { rm -f ${BUILD_SOURCE}/zlib-${ZLIB_VERSION}.tar.gz; \
+            wget -nc -P ${BUILD_SOURCE} \
+              https://github.com/madler/zlib/releases/download/v${ZLIB_VERSION}/zlib-${ZLIB_VERSION}.tar.gz; }
+          tar xf ${BUILD_SOURCE}/zlib-${ZLIB_VERSION}.tar.gz -C ${BUILD_WORK}
+
+          cd ${BUILD_WORK}/zlib-${ZLIB_VERSION}
+
+          ./configure \
+            --prefix=${BUILD_BASE} \
+            --static
+          make -j$(nproc) -l$(nproc)
+          make install
+
+      - name: build libplist
+        run: |
+          wget -q -nc -P ${BUILD_SOURCE} \
+            https://github.com/libimobiledevice/libplist/archive/${LIBPLIST_VERSION}.tar.gz
+          tar xf ${BUILD_SOURCE}/${LIBPLIST_VERSION}.tar.gz -C ${BUILD_WORK}
+          echo "${LIBPLIST_VERSION}" > ${BUILD_WORK}/libplist-${LIBPLIST_VERSION}/.tarball-version
+          cd ${BUILD_WORK}/libplist-${LIBPLIST_VERSION}
+          PACKAGE_VERSION=${LIBPLIST_VERSION} ./autogen.sh \
+            ${CONFIGURE_FLAGS} \
+            --without-cython \
+            --without-tests
+          sed -i 's/tools//g' Makefile
+          make -j$(nproc) -l$(nproc)
+          make install
+
+      - name: build libimobiledevice-glue
+        run: |
+          wget -q -nc -P ${BUILD_SOURCE} \
+            https://github.com/libimobiledevice/libimobiledevice-glue/archive/refs/heads/master.tar.gz
+          mv ${BUILD_SOURCE}/master.tar.gz ${BUILD_SOURCE}/libimobiledevice-glue-master.tar.gz
+          tar xf ${BUILD_SOURCE}/libimobiledevice-glue-master.tar.gz -C ${BUILD_WORK}
+
+          echo "${LIBIMOBILEDEVICE__GLUE_VERSION}" > ${BUILD_WORK}/libimobiledevice-glue-master/.tarball-version
+
+          cd ${BUILD_WORK}/libimobiledevice-glue-master
+          PACKAGE_VERSION=${LIBIMOBILEDEVICE__GLUE_VERSION} ./autogen.sh \
+            ${CONFIGURE_FLAGS}
+
+          make -j$(nproc) -l$(nproc)
+          make install
+
+      - name: build libirecovery
+        run: |
+          wget -q -nc -P ${BUILD_SOURCE} \
+            https://github.com/1Conan/libirecovery/archive/refs/heads/fix_dummy_and_without_tools.tar.gz
+          mv ${BUILD_SOURCE}/fix_dummy_and_without_tools.tar.gz ${BUILD_SOURCE}/libirecovery-fix_dummy_and_without_tools.tar.gz
+          tar xf ${BUILD_SOURCE}/libirecovery-fix_dummy_and_without_tools.tar.gz -C ${BUILD_WORK}
+
+          echo "${LIBIRECOVERY_VERSION}" > ${BUILD_WORK}/libirecovery-fix_dummy_and_without_tools/.tarball-version
+
+          cd ${BUILD_WORK}/libirecovery-fix_dummy_and_without_tools
+          sed -i '202d' configure.ac
+          sed -i '80,95d' configure.ac
+          sed -i 's/ tools//' Makefile.am
+
+          PACKAGE_VERSION=${LIBIRECOVERY_VERSION} ./autogen.sh \
+            ${CONFIGURE_FLAGS} \
+            --with-dummy \
+            --without-udev \
+            --without-tools
+
+          make -j$(nproc) -l$(nproc)
+          make install
+
+      - name: build wolfssl
+        if: env.OS != 'win' && env.SSL_LIBRARY == 'wolfssl'
+        run: |
+          wget -q -nc -P ${BUILD_SOURCE} \
+            https://github.com/wolfSSL/wolfssl/archive/refs/tags/v${WOLFSSL_VERSION}-stable.tar.gz
+          mv \
+            ${BUILD_SOURCE}/v${WOLFSSL_VERSION}-stable.tar.gz \
+            ${BUILD_SOURCE}/wolfssl-${WOLFSSL_VERSION}-stable.tar.gz
+          tar xf ${BUILD_SOURCE}/wolfssl-${WOLFSSL_VERSION}-stable.tar.gz -C ${BUILD_WORK}
+
+          cd ${BUILD_WORK}/wolfssl-${WOLFSSL_VERSION}-stable
+          ./autogen.sh
+          ./configure \
+              ${CONFIGURE_FLAGS} \
+              --disable-examples \
+              --disable-crypttests \
+              --disable-tls13 \
+              --disable-aescbc \
+              --disable-sha224 \
+              --disable-sha3 \
+              --disable-sha512 \
+              --enable-ipv6 \
+              --enable-ocsp \
+              --enable-sni \
+              --enable-altcertchains \
+              --enable-opensslextra
+
+          make -j$(nproc) -l$(nproc)
+          make install
+
+      - name: build openssl
+        if: env.OS != 'win' && env.SSL_LIBRARY == 'openssl'
+        run: |
+          wget -q -nc -P ${BUILD_SOURCE} \
+            https://github.com/openssl/openssl/releases/download/openssl-${OPENSSL_VERSION}/openssl-${OPENSSL_VERSION}.tar.gz
+          tar xf ${BUILD_SOURCE}/openssl-${OPENSSL_VERSION}.tar.gz -C ${BUILD_WORK}
+
+          if [ "${OS}" = "linux" ]; then
+            export PLATFORM="linux-${ARCH}"
+            case ${ARCH} in
+              i486)
+                export PLATFORM="linux-x86"
+                ;;
+              mips|mipsel)
+                export PLATFORM="linux-mips32"
+                ;;
+              riscv64)
+                export PLATFORM="linux64-riscv64"
+                ;;
+              arm|riscv32)
+                export PLATFORM="linux-generic32"
+                ;;
+            esac
+          fi
+
+          cd ${BUILD_WORK}/openssl-${OPENSSL_VERSION}
+          CC= CXX= AR= RANLIB= ./Configure no-shared no-apps no-docs no-tests --cross-compile-prefix=${TRIPLE}- --prefix=${BUILD_BASE} --static -static ${PLATFORM}
+          make -j$(nproc) -l$(nproc) CC="${CC}" CXX="${CXX}" AR="${AR}" RANLIB="${RANLIB}"
+          make install_sw DESTDIR="${ROOT}"
+
+      - name: build curl
+        run: |
+          wget -q -nc -P ${BUILD_SOURCE} \
+            https://curl.se/download/curl-${LIBCURL_VERSION}.tar.gz
+          tar xf ${BUILD_SOURCE}/curl-${LIBCURL_VERSION}.tar.gz -C ${BUILD_WORK}
+
+          if [ "${OS}" = "linux" ]; then
+            sed \
+              -i '/#ifndef curl_fd_set_typedefed/a #include <sys/select.h>' \
+              ${BUILD_WORK}/curl-${LIBCURL_VERSION}/include/curl/system.h
+          fi
+
+          if [ "${OS}" = "win" ]; then
+            CURL_FLAGS="--with-schannel"
+          elif [ "${OS}" = "linux" ]; then
+            if [ "${SSL_LIBRARY}" = "wolfssl" ]; then
+              CURL_FLAGS="--without-libcrypto --with-wolfssl"
+            else
+              CURL_FLAGS="--with-libcrypto --with-openssl --with-ca-fallback --with-ca-path=/etc/ssl/certs --with-ca-bundle=/etc/ssl/certs/ca-certificates.crt"
+            fi
+          fi
+
+          cd ${BUILD_WORK}/curl-${LIBCURL_VERSION}
+          ./configure \
+            ${CONFIGURE_FLAGS} \
+            --disable-debug \
+            --enable-http \
+            --enable-ipv6 \
+            --enable-libcurl-option \
+            --disable-ftp --disable-file --disable-dict --disable-telnet \
+            --disable-tftp --disable-pop3 --disable-imap --disable-smtp \
+            --disable-smb --disable-gopher --disable-rtsp --disable-mqtt \
+            --disable-ldap --disable-ldaps --disable-manual \
+            --without-libpsl --without-brotli --without-zstd \
+            --without-nghttp2 --without-libidn2 \
+            ${CURL_FLAGS}
+
+          make -j$(nproc) -l$(nproc) -C lib libcurl.la
+          make -C lib install-libLTLIBRARIES
+          make -C include install
+          make install-pkgconfigDATA
+
+      - name: build libtatsu
+        run: |
+          wget -q -nc -P ${BUILD_SOURCE} \
+            https://github.com/futurerestore/libtatsu/archive/${LIBTATSU_VERSION}.tar.gz
+          tar xf ${BUILD_SOURCE}/${LIBTATSU_VERSION}.tar.gz -C ${BUILD_WORK}
+          echo "${LIBTATSU_VERSION}" > ${BUILD_WORK}/libtatsu-${LIBTATSU_VERSION}/.tarball-version
+          cd ${BUILD_WORK}/libtatsu-${LIBTATSU_VERSION}
+          PACKAGE_VERSION=${LIBTATSU_VERSION} ./autogen.sh \
+            ${CONFIGURE_FLAGS}
+          make -j$(nproc) -l$(nproc)
+          make install
+
+      - name: (not) build libgeneral
+        run: |
+          wget -q -nc -P ${BUILD_SOURCE} \
+            https://github.com/tihmstar/libgeneral/raw/master/include/libgeneral/macros.h.in
+          mkdir -p ${BUILD_BASE}/include/libgeneral
+          m4 ${BUILD_SOURCE}/macros.h.in > ${BUILD_BASE}/include/libgeneral/macros.h
+
+      - name: build libfragmentzip
+        run: |
+          git clone --quiet https://github.com/tihmstar/libfragmentzip \
+            ${BUILD_WORK}/libfragmentzip-master
+
+          sed -i '/libgeneral/d' ${BUILD_WORK}/libfragmentzip-master/configure.ac
+
+          cd ${BUILD_WORK}/libfragmentzip-master
+          ./autogen.sh \
+            ${CONFIGURE_FLAGS}
+
+          make -j$(nproc) -l$(nproc)
+          make install
+
+      - name: build tsschecker
+        run: |
+          if [ "${OS}" = "win" ]; then
+            # because case-sensitive
+            sed -i 's/Iphlpapi/iphlpapi/' ${BUILD_BASE}/lib/libimobiledevice-glue-1.0.la
+            sed -i 's/Iphlpapi/iphlpapi/' ${BUILD_BASE}/lib/libirecovery-1.0.la
+          else
+            if [ "${SSL_LIBRARY}" = "wolfssl" ]; then
+              TSSCHECKER_FLAGS="--without-libcrypto --with-wolfssl"
+            else
+              TSSCHECKER_FLAGS="--with-libcrypto"
+            fi
+          fi
+
+          ./autogen.sh \
+            ${CONFIGURE_FLAGS} \
+            --without-libcrypto \
+            ${TSSCHECKER_FLAGS}
+
+          make -j$(nproc) -l$(nproc) \
+            LDFLAGS="-Wl,--gc-sections -Wl,-strip-all -all-static -static ${LDFLAGS}"
+          ${TRIPLE}-strip tsschecker/tsschecker${EXE_SUFFIX}
+
+      - uses: actions/upload-artifact@v6
+        if: ${{ !env.ACT }}
+        with:
+          name: tsschecker_${{ env.OS }}_${{ env.ARCH }}
+          path: tsschecker/tsschecker${{ env.EXE_SUFFIX }}
+
+  build-macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            runner: macos-14
+            minver: "10.12"
+          - arch: arm64
+            runner: macos-14
+            minver: "11.0"
+    runs-on: ${{ matrix.runner }}
+    env:
+      ARCH: ${{ matrix.arch }}
+      MINVER: ${{ matrix.minver }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          fetch-depth: 0
+          filter: tree:0
+
+      - name: Install build tools
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: "1"
+          HOMEBREW_NO_INSTALL_CLEANUP: "1"
+        run: |
+          HOMEBREW_NO_REQUIRE_TAP_TRUST=1 brew untap aws/tap || true
+          brew install autoconf automake libtool
+
+      - name: Build openssl
+        run: |
+          export DEP_ROOT="$(pwd)/dep_root"
+          curl -fL -o openssl.tar.gz \
+            "https://github.com/openssl/openssl/releases/download/openssl-${OPENSSL_VERSION}/openssl-${OPENSSL_VERSION}.tar.gz"
+          mkdir -p openssl && tar -xf openssl.tar.gz -C openssl --strip-components=1
+          cd openssl
+          ./Configure no-shared no-apps no-docs no-tests \
+            --prefix="${DEP_ROOT}" --openssldir="${DEP_ROOT}/ssl" \
+            "darwin64-${ARCH}-cc" "-mmacosx-version-min=${MINVER}" \
+            -Os -ffunction-sections -fdata-sections -fvisibility=hidden
+          make -j"$(sysctl -n hw.ncpu)" -l"$(sysctl -n hw.ncpu)"
+          make install_sw
+
+      - name: Build curl
+        run: |
+          export DEP_ROOT="$(pwd)/dep_root"
+          curl -fL -o curl.tar.gz "https://curl.se/download/curl-${LIBCURL_VERSION}.tar.gz"
+          mkdir -p curl && tar -xf curl.tar.gz -C curl --strip-components=1
+          cd curl
+          ./configure --host="${ARCH}-apple-darwin" \
+            --prefix="${DEP_ROOT}" --disable-shared --enable-static \
+            --with-openssl="${DEP_ROOT}" --with-ca-bundle=/etc/ssl/cert.pem \
+            --disable-ftp --disable-file --disable-dict --disable-telnet \
+            --disable-tftp --disable-pop3 --disable-imap --disable-smtp \
+            --disable-smb --disable-gopher --disable-rtsp --disable-mqtt \
+            --disable-ldap --disable-ldaps --disable-manual \
+            --without-libpsl --without-brotli --without-zstd \
+            --without-nghttp2 --without-libidn2 \
+            CFLAGS="-arch ${ARCH} -mmacosx-version-min=${MINVER} -Os -ffunction-sections -fdata-sections -fvisibility=hidden" \
+            PKG_CONFIG_PATH="${DEP_ROOT}/lib/pkgconfig"
+          make -j"$(sysctl -n hw.ncpu)" -l"$(sysctl -n hw.ncpu)" -C lib libcurl.la
+          make -C lib install-libLTLIBRARIES
+          make -C include install
+          make install-pkgconfigDATA
+
+      - name: Fetch libplist
+        uses: dawidd6/action-download-artifact@v21
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          repo: libimobiledevice/libplist
+          workflow: build.yml
+          name: libplist-latest_macOS
+          path: limd_suite/libplist
+      - name: Fetch libimobiledevice-glue
+        uses: dawidd6/action-download-artifact@v21
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          repo: libimobiledevice/libimobiledevice-glue
+          workflow: build.yml
+          name: libimobiledevice-glue-latest_macOS
+          path: limd_suite/glue
+      - name: Fetch libusbmuxd
+        uses: dawidd6/action-download-artifact@v21
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          repo: libimobiledevice/libusbmuxd
+          workflow: build.yml
+          name: libusbmuxd-latest_macOS
+          path: limd_suite/usbmuxd
+      - name: Fetch libirecovery
+        uses: dawidd6/action-download-artifact@v21
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          repo: libimobiledevice/libirecovery
+          workflow: build.yml
+          name: libirecovery-latest_macOS
+          path: limd_suite/irecovery
+
+      - name: Setup libimobiledevice dep_root
+        run: |
+          mkdir -p dep_root/lib dep_root/include
+          for d in limd_suite/*; do
+            tar -xf "$d"/*.tar -C "$d"
+            cp -a "$(find "$d" -type d -path '*/usr/*' -name lib     | head -1)"/. dep_root/lib/
+            cp -a "$(find "$d" -type d -path '*/usr/*' -name include | head -1)"/. dep_root/include/
+          done
+          sed -i '' "s|^prefix=.*|prefix=$(pwd)/dep_root|" dep_root/lib/pkgconfig/*.pc
+          rm -f dep_root/lib/*.dylib dep_root/lib/*.la
+          ls dep_root/lib/*.a
+
+      - name: Build libtatsu + libfragmentzip
+        run: |
+          export DEP_ROOT="$(pwd)/dep_root"
+          export PKG_CONFIG_PATH="${DEP_ROOT}/lib/pkgconfig"
+          CF="-arch ${ARCH} -mmacosx-version-min=${MINVER} -Os -ffunction-sections -fdata-sections -fvisibility=hidden"
+          NPROC="$(sysctl -n hw.ncpu)"
+
+          curl -fL -o tatsu.tar.gz "https://github.com/futurerestore/libtatsu/archive/${LIBTATSU_VERSION}.tar.gz"
+          mkdir -p tatsu && tar -xf tatsu.tar.gz -C tatsu --strip-components=1
+          echo "${LIBTATSU_VERSION}" > tatsu/.tarball-version
+          ( cd tatsu && PACKAGE_VERSION="${LIBTATSU_VERSION}" ./autogen.sh \
+              --host=${ARCH}-apple-darwin \
+              --prefix="${DEP_ROOT}" --disable-shared --enable-static CFLAGS="${CF}" \
+            && make -j"${NPROC}" -l"${NPROC}" && make install )
+
+          git clone --quiet https://github.com/tihmstar/libfragmentzip fz
+          curl -fL -o macros.h.in "https://github.com/tihmstar/libgeneral/raw/master/include/libgeneral/macros.h.in"
+          mkdir -p "${DEP_ROOT}/include/libgeneral"
+          m4 macros.h.in > "${DEP_ROOT}/include/libgeneral/macros.h"
+          sed -i '' '/libgeneral/d' fz/configure.ac
+          ( cd fz && ./autogen.sh \
+              --host=${ARCH}-apple-darwin \
+              --prefix="${DEP_ROOT}" --disable-shared --enable-static CFLAGS="${CF} -I${DEP_ROOT}/include" \
+            && make -j"${NPROC}" -l"${NPROC}" && make install )
+
+      - name: Build tsschecker
+        run: |
+          export DEP_ROOT="$(pwd)/dep_root"
+          ./autogen.sh \
+            --build=${ARCH}-apple-darwin --host=${ARCH}-apple-darwin \
+            --prefix="${DEP_ROOT}" --disable-shared --enable-static --without-libcrypto \
+            PKG_CONFIG_PATH="${DEP_ROOT}/lib/pkgconfig" \
+            CFLAGS="-arch ${ARCH} -mmacosx-version-min=${MINVER} -Os -flto=thin -ffunction-sections -fdata-sections -fvisibility=hidden" \
+            LDFLAGS="-arch ${ARCH} -flto=thin -Wl,-dead_strip -L${DEP_ROOT}/lib -L/usr/lib -framework CoreFoundation -framework CoreServices -framework SystemConfiguration -framework IOKit -limobiledevice-glue-1.0 -lusbmuxd-2.0" \
+            libfragmentzip_CFLAGS="-I${DEP_ROOT}/include" \
+            libfragmentzip_LIBS="-L${DEP_ROOT}/lib -lfragmentzip -lz -lcurl -lssl -lcrypto" \
+            libcurl_CFLAGS="-I${DEP_ROOT}/include" \
+            libcurl_LIBS="-L${DEP_ROOT}/lib -lcurl -lssl -lcrypto -lz" \
+            zlib_CFLAGS="-I/usr/include" zlib_LIBS="-L/usr/lib -lz"
+
+          make -j"$(sysctl -n hw.ncpu)" -l"$(sysctl -n hw.ncpu)"
+          "$(xcrun -f strip)" tsschecker/tsschecker
+          file tsschecker/tsschecker
+          if [ "${ARCH}" = "$(uname -m)" ] || arch "-${ARCH}" /usr/bin/true 2>/dev/null; then
+            arch "-${ARCH}" ./tsschecker/tsschecker -h 2>&1 | grep -q "tsschecker version"
+          else
+            echo "skipping exec test"
+          fi
+
+      - uses: actions/upload-artifact@v6
+        if: ${{ !env.ACT }}
+        with:
+          name: tsschecker_macOS_${{ matrix.arch }}
+          path: tsschecker/tsschecker
+
+  release:
+    runs-on: ubuntu-latest
+    needs: [build-win-lin, build-macos]
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          filter: tree:0
+
+      - name: Set env vars
+        run: |
+          echo "BUILD_VERSION_NUM=$(git rev-list --count HEAD | tr -d '\n')" >> $GITHUB_ENV
+          echo "BUILD_VERSION_SHA=$(git rev-parse HEAD | tr -d '\n')" >> $GITHUB_ENV
+          echo "BUILD_VERSION_STR=$(git rev-list --count HEAD | tr -d '\n')-$(git rev-parse HEAD | tr -d '\n')" >> $GITHUB_ENV
+          echo "COMMIT_MSG<<EOF" >> $GITHUB_ENV
+          echo "$(echo "$(git log -1 --pretty=%B)")" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v8
+        with:
+          path: artifacts
+
+      - name: List artifacts
+        run: ls -R
+        working-directory: artifacts
+
+      - name: Rename artifacts
+        working-directory: artifacts
+        run: |
+          mkdir -p bins
+          for DIR in tsschecker_*/; do
+            case ${DIR} in
+              *_win_*)
+                EXE_SUFFIX=".exe"
+                ;;
+              *)
+                EXE_SUFFIX=""
+                ;;
+            esac
+            OS=$(echo ${DIR} | cut -d_ -f 2)
+            ARCH=$(echo ${DIR} | cut -d_ -f 3-)
+            mv ${DIR}tsschecker${EXE_SUFFIX} "bins/tsschecker_${OS}_${ARCH%/}${EXE_SUFFIX}"
+          done
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Build ${{ env.BUILD_VERSION_STR }}
+          tag_name: ${{ env.BUILD_VERSION_NUM }}
+          files: artifacts/bins/tsschecker_*
+          body: ${{ env.COMMIT_MSG }}
+          draft: false
+          prerelease: false
