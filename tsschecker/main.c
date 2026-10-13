@@ -76,37 +76,37 @@ void cmd_help(){
     printf("Checks the current TSS signing status for your target apple device and software version\n\n");
     printf("Usage: tsschecker [OPTIONS] <>\n\n");
     printf("  -h, --help\t\t\tprints usage information\n");
-    printf("  -d, --device <model>\t\tSpecify the device by its model (example: iPhone13,3)\n");
-    printf("  -v, --version <version>\t\tSpecify the software version (example: 26.6.2)\n");
-    printf("  -Z  --buildid <build>\t\tSpecify the build number instead of the software version (example: 23G90)\n");
-    printf("  -B, --boardconfig <board> \tSpecify the board config instead of the device model (example: d53pap)\n");
+    printf("  -d, --device <model>\t\tSpecify the device by its model (eg: iPhone13,3)\n");
+    printf("  -v, --version <version>\tSpecify the software version (eg: 26.6.2)\n");
+    printf("  -Z  --buildid <build>\t\tSpecify the build number instead of the software version (eg: 23G90)\n");
+    printf("  -B, --boardconfig <board> \tSpecify the board config instead of the device model (eg: d53pap)\n");
     printf("  -o, --ota\t\t\tCheck OTA signing status for a a given version instead of the IPSW\n");
-    printf("  -b, --no-baseband\t\tSkip checking baseband signing status (Request aptickets without bbtickets)\n");
-    printf("  -m, --build-manifest\t\tManually specify the BuildManifest to use (You must also specify a device or boardconfig when using this option)\n");
+    printf("  -b, --no-baseband\t\tDo not check the baseband signing status (Request tickets without baseband)\n");
+    printf("  -m, --build-manifest\t\tSpecify the BuildManifest to use for requesting tickets (Used with -d, -B or both)\n");
     printf("  -s, --save\t\t\tSave fetched SHSH Blobs (Mostly makes sense with -e)\n");
-    printf("  -u, --update-install\t\tonly request tickets for InstallType=Update\n");
-    printf("  -E, --erase-install\t\tonly request tickets for InstallType=Erase\n");
+    printf("  -u, --update-install\t\tRequest update tickets (InstallType=Update) only\n");
+    printf("  -E, --erase-install\t\tRequest erase tickets (InstallType=Erase) only\n");
     printf("  -l, --latest\t\t\tUse the latest public software version instead of manually specifying one\n");
     printf("                 \t\tespecially useful with -s and -e for saving shsh blobs\n");
-    printf("  -e, --ecid <ecid>\t\tManually specify the ECID to be used when requesting tickets, instead of using random ones\n");
+    printf("  -e, --ecid <ecid>\t\tSpecify the ECID to be used when requesting tickets, instead of using random ones\n");
     printf("                 \t\tECID must be either DEC or HEX eg. 5482657301265 or 0xab46efcbf71\n");
-    printf("  -g, --generator <seed>\t\tSpecify APNonce seed (generator) in HEX format 16 in length (eg. 0x1111111111111111)\n\n");
-    printf("  -x, --cryptexseed <seed>\t\tSpecify Cryptex1 seed in HEX format 32 in length (eg. 0x11111111111111111111111111111111)\n\n");
-    printf("  -8  --apnonce <nonce>\t\tmanually specify ApNonce instead of using random ones\n\t\t\t\t(required when saving blobs for arm64e devices with a matching generator)\n\n");
-    printf("  -9  --sepnonce <nonce>\t\tmanually specify SEP Nonce instead of using random ones (not required for saving blobs)\n");
-    printf("  -t  --cryptexnonce <nonce>\t\tspecify Cryptex1 Nonce(required for saving cryptex blobs)\n");
-    printf("  -c  --bbsnum <snum>\t\tManually specify BbSNUM in HEX to save valid BBTickets (not required for saving blobs)\n\n");
-    printf("  -3  --save-path <path>\t\tspecify output path for saving shsh blobs\n");
-    printf("  -p  --bplist\t\t\tsave shsh blob as binary plist (used with --save)\n");
-    printf("  -S  --server-url <url>\t\tmanually specify TSS server url\n");
-    printf("  -6  --beta\t\t\trequest tickets for a beta instead of normal release (use with -o)\n");
-    printf("  -1  --list-devices\t\tlist all known devices\n");
-    printf("  -2  --list-versions\t\tlist all known software versions\n");
-    printf("  -7  --nocache \t\tignore caches and re-download required files\n");
-    printf("  -4  --print-tss-request\tprint the TSS request that will be sent to Apple\n");
-    printf("  -5  --print-tss-response\tprint the TSS response that comes from Apple\n");
-    printf("  -r  --raw\t\t\tsend raw file to Apple's TSS server (useful for debugging)\n");
-    printf("  -0  --debug\t\t\tprint extra tss info(useful for debugging)\n\n");
+    printf("  -g, --generator <seed>\tSpecify the ApNonce seed (generator) in HEX format 16 in length (eg: 0x1111111111111111)\n\n");
+    printf("  -x, --cryptexseed <seed>\t\tSpecify the Cryptex1 seed in HEX format 32 in length (eg: 0x11111111111111111111111111111111)\n\n");
+    printf("  -8  --apnonce <nonce>\t\tSpecify the ApNonce instead of using random ones\n\t\t\t\t(Required when saving blobs for arm64e devices with a matching generator)\n\n");
+    printf("  -9  --sepnonce <nonce>\tSpecify the SepNonce instead of using random ones (not required for saving blobs)\n");
+    printf("  -t  --cryptexnonce <nonce>\tSpecify the Cryptex1 Nonce (Required for saving usable cryptex blobs)\n");
+    printf("  -c  --bbsnum <snum>\t\tSpecify the Baseband Serial Number in HEX to save BBTickets (Only required when saving baseband tickets)\n\n");
+    printf("  -3  --save-path <path>\tSpecify the output path for saving fetched shsh blobs\n");
+    printf("  -p  --bplist\t\t\tSave SHSH blobs in a binary plist for smaller filesize (Used with -s)\n");
+    printf("  -S  --server-url <url>\tSpecify the TSS server URL for requesting tickets\n");
+    printf("  -6  --beta\t\t\tRequest tickets for beta software instead of release (Used with -o)\n");
+    printf("  -1  --list-devices\t\tList all known apple devices\n");
+    printf("  -2  --list-versions\t\tList all known software versions\n");
+    printf("  -7  --nocache \t\tIgnore caches and re-download required files\n");
+    printf("  -4  --print-tss-request\tPrint the request that will be sent to the TSS server\n");
+    printf("  -5  --print-tss-response\tPrint the response that comes from the TSS server\n");
+    printf("  -r  --raw\t\t\tSend a raw file to the TSS server (Useful for debugging)\n");
+    printf("  -0  --debug\t\t\tPrint extra TSS info (Useful for debugging)\n\n");
 }
 
 int64_t parseECID(const char *ecid){
@@ -165,7 +165,7 @@ char *parseNonce(const char *nonce, size_t *parsedLen){
 int main(int argc, const char * argv[]) {
     int err = 0;
     int isSigned = 0;
-    printf("tsschecker version: "TSSCHECKER_VERSION_MAJOR"."TSSCHECKER_VERSION_COUNT"."TSSCHECKER_VERSION_PATCH"-"TSSCHECKER_VERSION_SHA"-"TSSCHECKER_BUILD_TYPE"\n");
+    printf("tsschecker version: "TSSCHECKER_VERSION_MAJOR"."TSSCHECKER_VERSION_MINOR"."TSSCHECKER_VERSION_COUNT"."TSSCHECKER_VERSION_PATCH"-"TSSCHECKER_VERSION_SHA"-"TSSCHECKER_BUILD_TYPE"\n");
     printf("%s\n",fragmentzip_version());
     
     dbglog = 1;
